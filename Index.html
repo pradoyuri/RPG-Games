@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Eldoria Online - RPG Engine</title>
+    <style>
+        :root {
+            --medieval-gold: #d4af37;
+            --medieval-dark: #1a1a1a;
+            --warrior-red: #8b0000;
+        }
+
+        body {
+            background-color: #050505;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 900px;
+            height: 600px;
+            background: #222;
+            border: 4px solid var(--medieval-gold);
+            display: grid;
+            grid-template-columns: 250px 1fr 200px;
+            grid-template-rows: 60px 1fr 150px;
+            gap: 5px;
+            padding: 10px;
+            position: relative;
+        }
+
+        /* Lobby de Login */
+        #login-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn {
+            background: var(--medieval-gold);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* Interface do Jogo */
+        .panel { background: #333; border: 1px solid #555; padding: 10px; overflow-y: auto; }
+        
+        header { grid-column: 1 / 4; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--medieval-gold); }
+        
+        #stats-panel { grid-column: 1; display: flex; flex-direction: column; gap: 5px; }
+        
+        #main-display { grid-column: 2; display: flex; flex-direction: column; }
+        
+        #multiplayer-chat { grid-column: 3; font-size: 0.8em; }
+
+        #action-log { flex-grow: 1; background: #111; padding: 10px; font-family: monospace; font-size: 0.9em; margin-bottom: 10px; border: 1px inset #000; }
+
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+
+        .class-icon { font-size: 2em; display: block; margin-bottom: 10px; }
+        
+        .progress-bar { width: 100%; background: #000; height: 10px; border-radius: 5px; margin: 5px 0; }
+        .progress-fill { height: 100%; background: #4caf50; width: 0%; transition: width 0.3s; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="login-screen">
+            <h1>ELDORIA ONLINE</h1>
+            <input type="text" id="username" placeholder="Nome do Herói...">
+            <select id="class-select">
+                <option value="Guerreiro">Guerreiro (Força/Vigor)</option>
+                <option value="Arqueiro">Arqueiro (Agilidade/Sorte)</option>
+                <option value="Mago">Mago (Inteligência)</option>
+                <option value="Healer">Healer (Vigor/Inteligência)</option>
+            </select>
+            <button class="btn" onclick="startGame()">Entrar no Reino</button>
+        </div>
+
+        <header class="panel">
+            <div id="player-name-display">Aventureiro</div>
+            <div>Ouro: <span id="gold-val" style="color: gold;">0</span></div>
+            <button onclick="saveGame()" style="font-size: 0.7em;">Salvar Conta</button>
+        </header>
+
+        <aside id="stats-panel" class="panel">
+            <h3>Status</h3>
+            <div id="class-display" style="color: var(--medieval-gold);">Classe</div>
+            <div>Nível: <span id="lvl-val">1</span></div>
+            <div class="progress-bar"><div id="exp-fill" class="progress-fill" style="background: #2196f3;"></div></div>
+            <hr>
+            <div>HP: <span id="hp-val">100/100</span></div>
+            <div class="progress-bar"><div id="hp-fill" class="progress-fill"></div></div>
+            <div id="attr-list" style="font-size: 0.9em;">
+                STR: 0 | AGI: 0 | INT: 0
+            </div>
+            <hr>
+            <h4>Equipamento</h4>
+            <div id="equip-val" style="font-size: 0.8em; color: #aaa;">Trapos Velhos +0</div>
+        </aside>
+
+        <main id="main-display" class="panel">
+            <div id="action-log"></div>
+            <div class="controls">
+                <button class="btn" onclick="explore()">Explorar Floresta</button>
+                <button class="btn" onclick="visitBlacksmith()">Ferreiro</button>
+                <button class="btn" onclick="openTrade()">Trocar (Trade)</button>
+                <button class="btn" onclick="rest()">Descansar (HP)</button>
+            </div>
+        </main>
+
+        <section id="multiplayer-chat" class="panel">
+            <h4>Lobby Global</h4>
+            <div id="chat-content" style="height: 350px; overflow-y: auto;"></div>
+        </section>
+    </div>
+
+    <script>
+        // --- MOTOR DO JOGO (ENGINE) ---
+        let p = {
+            name: "",
+            class: "",
+            lvl: 1,
+            exp: 0,
+            nextLvl: 100,
+            hp: 100,
+            maxHp: 100,
+            gold: 50,
+            str: 5, agi: 5, int: 5, vit: 5, luk: 5,
+            weaponLvl: 0,
+            materials: 0
+        };
+
+        const logs = document.getElementById('action-log');
+        const chat = document.getElementById('chat-content');
+
+        function logMsg(msg, color = "#fff") {
+            logs.innerHTML += `<div style="color: ${color}">> ${msg}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function chatMsg(user, msg) {
+            chat.innerHTML += `<div><strong>${user}:</strong> ${msg}</div>`;
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // --- SISTEMA DE LOGIN E SAVE ---
+        function startGame() {
+            const name = document.getElementById('username').value;
+            if(!name) return alert("Escolha um nome!");
+            
+            p.name = name;
+            p.class = document.getElementById('class-select').value;
+            
+            // Inicializar Atributos por Classe
+            if(p.class === "Guerreiro") { p.str = 10; p.vit = 8; }
+            if(p.class === "Mago") { p.int = 12; p.maxHp = 80; }
+            if(p.class === "Arqueiro") { p.agi = 10; p.luk = 8; }
+            
+            // Carregar save se existir
+            const saved = localStorage.getItem('eldoria_save_' + name);
+            if(saved) {
+                p = JSON.parse(saved);
+                logMsg("Conta carregada com sucesso!", "cyan");
+            }
+
+            document.getElementById('login-screen').style.display = 'none';
+            updateUI();
+            logMsg(`Bem-vindo a Eldoria, ${p.name} o ${p.class}!`);
+            
+            // Simular Multiplayer
+            setInterval(simulateMultiplayer, 5000);
+        }
+
+        function saveGame() {
+            localStorage.setItem('eldoria_save_' + p.name, JSON.stringify(p));
+            logMsg("Progresso salvo localmente.", "gold");
+        }
+
+        // --- SISTEMA DE COMBATE E EXPLORAÇÃO ---
+        function explore() {
+            if(p.hp <= 0) return logMsg("Você está exausto! Descanse.", "red");
+            
+            const event = Math.random();
+            if(event > 0.4) {
+                // Combate
+                let monsterHp = 20 + (p.lvl * 5);
+                let dmgDealt = p.str + (p.weaponLvl * 2) + Math.floor(Math.random() * p.luk);
+                let dmgTaken = Math.max(2, 10 - Math.floor(p.vit/2));
+                
+                p.hp -= dmgTaken;
+                p.exp += 40;
+                p.gold += 15;
+                p.materials += 1;
+                
+                logMsg(`Batalha: Você derrotou um Goblin! Causou ${dmgDealt} dmg e recebeu ${dmgTaken} dmg.`, "#ff4444");
+                logMsg(`Ganhou 40 EXP, 15 Gold e 1 Material de Forja.`, "yellow");
+            } else {
+                logMsg("Você explorou e encontrou uma fonte sagrada. HP restaurado.", "lightgreen");
+                p.hp = p.maxHp;
+            }
+            checkLevelUp();
+            updateUI();
+        }
+
+        // --- FERREIRO (CRAFTING) ---
+        function visitBlacksmith() {
+            const costGold = (p.weaponLvl + 1) * 30;
+            const costMat = (p.weaponLvl + 1) * 2;
+
+            if(p.gold >= costGold && p.materials >= costMat) {
+                p.gold -= costGold;
+                p.materials -= costMat;
+                p.weaponLvl++;
+                logMsg(`Ferreiro: "Sua arma agora é +${p.weaponLvl}!"`, "orange");
+                p.str += 2;
+            } else {
+                logMsg(`Ferreiro: "Você precisa de ${costGold} gold e ${costMat} materiais para o upgrade."`, "#aaa");
+            }
+            updateUI();
+        }
+
+        // --- SISTEMA DE TRADE E MULTIPLAYER (SIMULADO) ---
+        function openTrade() {
+            logMsg("Procurando jogadores para trade...", "cyan");
+            setTimeout(() => {
+                const luck = Math.random();
+                if(luck > 0.5) {
+                    p.gold += 50;
+                    logMsg("Trade Realizado: Você vendeu itens raros por 50 Gold!", "gold");
+                } else {
+                    logMsg("Nenhum comprador interessado no momento.");
+                }
+                updateUI();
+            }, 1000);
+        }
+
+        function simulateMultiplayer() {
+            const users = ["Lord_Dragon", "X_Mago_X", "Beholder99", "Sir_Kael"];
+            const msgs = ["Alguém quer ir Dungeon?", "Vendo Espada Longa +3!", "Onde fica o ferreiro?", "O Mago é muito apelão kkk"];
+            const rUser = users[Math.floor(Math.random()*users.length)];
+            const rMsg = msgs[Math.floor(Math.random()*msgs.length)];
+            chatMsg(rUser, rMsg);
+        }
+
+        // --- LÓGICA DE PROGRESSÃO ---
+        function checkLevelUp() {
+            if(p.exp >= p.nextLvl) {
+                p.lvl++;
+                p.exp = 0;
+                p.nextLvl = Math.floor(p.nextLvl * 1.5);
+                p.maxHp += 20;
+                p.hp = p.maxHp;
+                p.str += 2; p.agi += 1; p.int += 1;
+                logMsg(`LEVEL UP! Você agora está no nível ${p.lvl}!`, "cyan");
+            }
+        }
+
+        function rest() {
+            p.hp = p.maxHp;
+            logMsg("Você descansou na estalagem. HP Total!", "lightgreen");
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('player-name-display').innerText = p.name;
+            document.getElementById('class-display').innerText = p.class;
+            document.getElementById('lvl-val').innerText = p.lvl;
+            document.getElementById('gold-val').innerText = p.gold;
+            document.getElementById('hp-val').innerText = `${p.hp}/${p.maxHp}`;
+            document.getElementById('equip-val').innerText = `Espada de Aço +${p.weaponLvl}`;
+            document.getElementById('attr-list').innerText = `STR: ${p.str} | AGI: ${p.agi} | INT: ${p.int} | MAT: ${p.materials}`;
+            
+            const hpPerc = (p.hp / p.maxHp) * 100;
+            document.getElementById('hp-fill').style.width = hpPerc + "%";
+            
+            const expPerc = (p.exp / p.nextLvl) * 100;
+            document.getElementById('exp-fill').style.width = expPerc + "%";
+        }
+    </script>
+</body>
+</html>
