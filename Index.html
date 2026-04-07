@@ -3,306 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eldoria Pro - Professional RPG Engine</title>
+    <title>Eldoria Online: GitHub Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;500&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;700&display=swap');
-
         :root {
-            --gold: #FFD700; --crimson: #800000; --mana: #1E90FF;
-            --surface: #121212; --panel: #1E1E1E; --border: #333;
-            --rarity-0: #fff; --rarity-1: #1eff00; --rarity-2: #0070dd; --rarity-3: #a335ee;
+            --gold: #c5a059; --gold-bright: #f0d58e;
+            --bg: #0a0a0c; --panel: #16161a; --border: #2d2d35;
+            --white: #e1e1e6; --red: #ff4d4d; --blue: #4d94ff;
+            --rarity-0: #9e9e9e; --rarity-1: #1eff00; --rarity-2: #0070dd;
         }
 
+        * { box-sizing: border-box; }
         body { 
-            background: #000; color: #f0f0f0; font-family: 'Inter', sans-serif; 
+            background: var(--bg); color: var(--white); font-family: 'Inter', sans-serif;
             margin: 0; display: flex; height: 100vh; overflow: hidden;
         }
 
-        /* Layout Profissional */
-        #app {
-            display: grid; grid-template-columns: 320px 1fr 350px;
-            grid-template-rows: 60px 1fr 200px; width: 100%; gap: 2px; background: var(--border);
+        /* Lobby / Auth Screen */
+        #lobby {
+            position: fixed; inset: 0; background: radial-gradient(circle, #1a1a20 0%, #050505 100%);
+            z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        .panel { background: var(--surface); padding: 20px; overflow-y: auto; }
-
-        header { grid-column: 1 / 4; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; background: #0a0a0a; }
-
-        /* Atributos e Stats */
-        .stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
-        .stat-value { font-weight: bold; color: var(--gold); }
-
-        /* Progress Bars */
-        .bar-wrap { width: 100%; height: 12px; background: #222; border-radius: 6px; margin: 4px 0 15px; overflow: hidden; border: 1px solid #333; }
-        .bar-fill { height: 100%; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-
-        /* World View */
-        #world-display { grid-column: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); }
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 80%; max-width: 500px; }
-
-        /* Inventory System */
-        .inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .item-slot { 
-            aspect-ratio: 1; background: #1a1a1a; border: 1px solid #333; 
-            display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; font-size: 24px; position: relative; transition: 0.2s;
+        .lobby-box {
+            background: var(--panel); border: 2px solid var(--gold); padding: 40px;
+            width: 400px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,1);
         }
-        .item-slot:hover { border-color: var(--gold); background: #252525; }
-        .item-slot.equipped { border: 1px solid var(--gold); box-shadow: 0 0 10px rgba(255,215,0,0.2); }
 
-        /* Combat Log */
-        #log { grid-column: 2; grid-row: 3; background: #080808; border-top: 1px solid #222; padding: 15px; font-family: 'monospace'; font-size: 13px; color: #888; }
-        .log-entry { margin-bottom: 4px; border-left: 2px solid #333; padding-left: 8px; }
+        /* Main Game Layout */
+        #game-interface {
+            display: grid; grid-template-columns: 300px 1fr 320px;
+            grid-template-rows: 70px 1fr 200px; width: 100%; height: 100%;
+            display: none; /* Ativado após login */
+        }
 
-        /* Buttons */
+        .panel { background: var(--panel); border: 1px solid var(--border); padding: 20px; overflow-y: auto; }
+
+        /* UI Elements */
+        .header { grid-column: 1 / 4; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--gold); padding: 0 30px; }
+        
+        .char-info { border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 15px; }
+        
+        .bar-outer { width: 100%; height: 10px; background: #000; border-radius: 5px; margin: 8px 0; overflow: hidden; }
+        .bar-inner { height: 100%; width: 0%; transition: width 0.4s ease; }
+
+        /* Combat & Action Area */
+        .world-view { 
+            grid-column: 2; display: flex; flex-direction: column; 
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://www.transparenttextures.com/patterns/dark-matter.png');
+            align-items: center; justify-content: center;
+        }
+
+        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 80%; }
+
         .btn {
-            background: none; border: 1px solid var(--gold); color: var(--gold);
-            padding: 12px 24px; font-family: 'Cinzel'; cursor: pointer;
-            transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px;
+            background: transparent; border: 1px solid var(--gold); color: var(--gold);
+            padding: 15px; cursor: pointer; font-family: 'Cinzel'; font-weight: bold;
+            transition: 0.2s; text-transform: uppercase;
         }
-        .btn:hover:not(:disabled) { background: var(--gold); color: #000; box-shadow: 0 0 15px rgba(255,215,0,0.3); }
-        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; }
+        .btn:hover:not(:disabled) { background: var(--gold); color: #000; }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* Overlays */
-        #overlay { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        /* Inventory & Trade */
+        .inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .slot { 
+            aspect-ratio: 1; background: #0a0a0a; border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+            cursor: pointer; position: relative;
+        }
+        .slot:hover { border-color: var(--gold-bright); }
+        .slot.equipped { outline: 2px solid var(--gold); }
+
+        /* Log */
+        .log-area { grid-column: 1 / 4; background: #050505; padding: 15px; font-family: monospace; font-size: 0.85rem; color: #888; overflow-y: auto; border-top: 2px solid var(--border); }
+        .log-entry { margin-bottom: 4px; border-left: 3px solid var(--border); padding-left: 10px; }
+
+        /* Typography */
+        h1, h2, h3 { font-family: 'Cinzel', serif; margin: 0; color: var(--gold); }
+        .stat-line { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <div id="overlay">
-        <h1 style="font-family: 'Cinzel'; color: var(--gold); font-size: 3rem; margin-bottom: 0;">ELDORIA PRO</h1>
-        <p style="color: #666; margin-bottom: 40px;">Professional RPG Framework</p>
-        <input type="text" id="p-name" placeholder="NOME DO PERSONAGEM" style="padding: 15px; background: #111; border: 1px solid var(--gold); color: #fff; width: 300px; text-align: center;">
-        <br>
-        <button class="btn" onclick="Engine.start()">DESPERTAR</button>
+    <div id="lobby">
+        <div class="lobby-box">
+            <h1>ELDORIA</h1>
+            <p style="color: #666; font-size: 0.8rem; margin-bottom: 20px;">RPG ENGINE v1.0 PRO</p>
+            <input type="text" id="username" placeholder="Nome do Herói" style="width: 100%; padding: 12px; background: #000; border: 1px solid var(--border); color: #fff; margin-bottom: 10px; text-align: center;">
+            <select id="class-select" style="width: 100%; padding: 12px; background: #000; border: 1px solid var(--border); color: #fff; margin-bottom: 20px;">
+                <option value="Guerreiro">Guerreiro (Força)</option>
+                <option value="Arqueiro">Arqueiro (Agilidade)</option>
+                <option value="Mago">Mago (Inteligência)</option>
+                <option value="Healer">Healer (Vigor)</option>
+            </select>
+            <button class="btn" style="width: 100%;" onclick="Engine.init()">Entrar no Reino</button>
+            <p style="font-size: 0.7rem; color: #444; margin-top: 15px;">Seu progresso é salvo automaticamente neste navegador.</p>
+        </div>
     </div>
 
-    <div id="app">
-        <header>
-            <div id="ui-hero-name" style="font-family: 'Cinzel'; font-size: 1.2rem; color: var(--gold);">---</div>
-            <div style="display: flex; gap: 30px;">
-                <span>GOLD: <b id="ui-gold" style="color: var(--gold);">0</b></span>
-                <span>MATERIAIS: <b id="ui-mats" style="color: #aaa;">0</b></span>
+    <div id="game-interface">
+        <header class="header">
+            <h2 id="ui-name">---</h2>
+            <div style="display: flex; gap: 40px;">
+                <span>OURO: <b id="ui-gold" style="color: var(--gold);">0</b></span>
+                <span>MATERIAIS: <b id="ui-mats" style="color: var(--blue);">0</b></span>
             </div>
-            <button class="btn" style="padding: 5px 15px; font-size: 10px;" onclick="Engine.save()">SALVAR CLOUD (LOCAL)</button>
+            <button class="btn" style="padding: 5px 15px; font-size: 0.7rem;" onclick="Engine.save()">Salvar Agora</button>
         </header>
 
         <aside class="panel">
-            <h3 style="font-family: 'Cinzel'; margin-top: 0;">STATUS DO HERÓI</h3>
-            <div class="stat-row"><span>NÍVEL</span><span id="ui-lvl" class="stat-value">1</span></div>
-            <div class="bar-wrap"><div id="bar-exp" class="bar-fill" style="background: var(--mana); width: 0%"></div></div>
-            
-            <div class="stat-row"><span>VITALIDADE</span><span id="ui-hp-text" class="stat-value">0/0</span></div>
-            <div class="bar-wrap"><div id="bar-hp" class="bar-fill" style="background: var(--crimson); width: 100%"></div></div>
-
-            <div style="background: #111; padding: 15px; border-radius: 4px; margin-top: 20px;">
-                <div class="stat-row"><span>ATAQUE TOTAL</span><span id="ui-atk" class="stat-value">0</span></div>
-                <div class="stat-row"><span>DEFESA TOTAL</span><span id="ui-def" class="stat-value">0</span></div>
-                <div class="stat-row"><span>SORTE</span><span id="ui-luk" class="stat-value">0</span></div>
+            <div class="char-info">
+                <div class="stat-line"><span>Nível</span><span id="ui-lvl">1</span></div>
+                <div class="bar-outer"><div id="ui-exp-bar" class="bar-inner" style="background: var(--blue);"></div></div>
+                
+                <div class="stat-line"><span>Vitalidade</span><span id="ui-hp-txt">0/0</span></div>
+                <div class="bar-outer"><div id="ui-hp-bar" class="bar-inner" style="background: var(--red);"></div></div>
             </div>
+
+            <h3>Atributos</h3>
+            <div class="stat-line"><span>Ataque</span><b id="ui-atk">0</b></div>
+            <div class="stat-line"><span>Defesa</span><b id="ui-def">0</b></div>
+            <div class="stat-line"><span>Sorte</span><b id="ui-luk">0</b></div>
+
+            <h3 style="margin-top: 20px;">Equipamento</h3>
+            <div id="ui-equip-weapon" style="font-size: 0.8rem; color: #888;">Arma: Nenhuma</div>
+            <div id="ui-equip-armor" style="font-size: 0.8rem; color: #888;">Armadura: Nenhuma</div>
         </aside>
 
-        <main id="world-display">
-            <div id="scene-title" style="font-family: 'Cinzel'; font-size: 1.5rem; margin-bottom: 30px; color: #fff;">VILAREJO DE ÁRATHON</div>
-            <div class="action-grid">
-                <button class="btn" id="btn-explore" onclick="Engine.action('explore')">Explorar Arredores</button>
-                <button class="btn" id="btn-blacksmith" onclick="Engine.action('blacksmith')">Ferreiro Real</button>
-                <button class="btn" id="btn-rest" onclick="Engine.action('rest')">Descansar</button>
-                <button class="btn" id="btn-trade" onclick="Engine.action('trade')">Mercado</button>
+        <main class="world-view">
+            <h1 id="ui-location" style="margin-bottom: 40px; letter-spacing: 5px;">VILAREJO</h1>
+            <div class="action-btns">
+                <button class="btn" onclick="Engine.combat()">Explorar Floresta</button>
+                <button class="btn" onclick="Engine.blacksmith()">Ferreiro (Upgrade)</button>
+                <button class="btn" onclick="Engine.trade()">Negociar (Trade)</button>
+                <button class="btn" onclick="Engine.rest()">Estalagem (Descanso)</button>
             </div>
         </main>
 
         <section class="panel">
-            <h3 style="font-family: 'Cinzel'; margin-top: 0;">INVENTÁRIO</h3>
-            <div class="inv-grid" id="inventory-slots">
+            <h3>Mochila</h3>
+            <div class="inv-grid" id="ui-inventory">
                 </div>
-            <div id="item-tooltip" style="margin-top: 20px; font-size: 12px; color: #888; border-top: 1px solid #222; padding-top: 10px;">
-                Selecione um item para ver detalhes ou equipar.
+            <div id="ui-item-desc" style="margin-top: 20px; font-size: 0.8rem; color: #666; font-style: italic;">
+                Toque em um item para usar ou equipar.
             </div>
         </section>
 
-        <div id="log"></div>
+        <div class="log-area" id="ui-log">
+            <div class="log-entry">Bem-vindo a Eldoria. Sua jornada começa aqui.</div>
+        </div>
     </div>
 
     <script>
         /**
-         * ENGINE CORE - DESIGN PATTERN: SINGLETON MODULE
-         * Gerenciamento de estado imutável e lógica desacoplada.
+         * ELDORIA ENGINE v1.0 PRO
+         * Arquitetura Singleton baseada em estados para Single-Player.
          */
         const Engine = (() => {
-            // Estado Privado
-            let state = {
-                player: {
-                    name: "Aventureiro", lvl: 1, exp: 0, gold: 100, mats: 0,
-                    baseAtk: 10, baseDef: 5, baseLuk: 5,
-                    hp: 100, maxHp: 100,
-                    inventory: [],
-                    equipped: { weapon: null, armor: null }
+            // -- BANCO DE DADOS INTERNO --
+            const DATABASE = {
+                items: {
+                    'W1': { name: 'Adaga de Ferro', atk: 5, icon: '🗡️', type: 'weapon', rarity: 0 },
+                    'W2': { name: 'Espada Longa', atk: 12, icon: '⚔️', type: 'weapon', rarity: 1 },
+                    'A1': { name: 'Trapos', def: 2, icon: '👕', type: 'armor', rarity: 0 },
+                    'A2': { name: 'Cota de Malha', def: 10, icon: '🛡️', type: 'armor', rarity: 1 },
+                    'P1': { name: 'Poção', heal: 40, icon: '🧪', type: 'use', rarity: 0 }
                 },
-                isBusy: false,
-                config: { expBase: 100, expGrowth: 1.5 }
+                monsters: [
+                    { name: 'Slime', hp: 30, atk: 5, xp: 20, gold: 5 },
+                    { name: 'Goblin', hp: 60, atk: 12, xp: 45, gold: 15 },
+                    { name: 'Orc', hp: 120, atk: 25, xp: 110, gold: 40 }
+                ]
             };
 
-            // Database de Itens (Imutável)
-            const ITEMS = {
-                W01: { id: 'W01', name: "Espada Curta", atk: 5, icon: "🗡️", type: 'weapon', rarity: 0 },
-                W02: { id: 'W02', name: "Machado de Guerra", atk: 15, icon: "🪓", type: 'weapon', rarity: 1 },
-                A01: { id: 'A01', name: "Couraça de Couro", def: 8, icon: "🛡️", type: 'armor', rarity: 0 },
-                P01: { id: 'P01', name: "Poção de Vida", heal: 50, icon: "🧪", type: 'consumable', rarity: 0 }
+            // -- ESTADO DO JOGADOR --
+            let p = {
+                name: '', class: '', lvl: 1, exp: 0, nextLvl: 100,
+                hp: 100, maxHp: 100, gold: 50, mats: 0,
+                baseAtk: 10, baseDef: 5, baseLuk: 5,
+                inv: ['P1'], equipped: { weapon: null, armor: null }
             };
 
-            // --- LÓGICA DE ATRIBUTOS (CÁLCULO DINÂMICO) ---
+            // -- CORE LOGIC --
+            const init = () => {
+                const name = document.getElementById('username').value;
+                if(!name) return alert("Insira o nome do herói.");
+                
+                const saved = localStorage.getItem(`eldoria_save_${name}`);
+                if(saved) {
+                    p = JSON.parse(saved);
+                    log("Crônicas carregadas do LocalStorage.");
+                } else {
+                    p.name = name;
+                    p.class = document.getElementById('class-select').value;
+                    applyClassBonus();
+                    log(`Nova lenda iniciada: ${p.name}, o ${p.class}.`);
+                }
+
+                document.getElementById('lobby').style.display = 'none';
+                document.getElementById('game-interface').style.display = 'grid';
+                refreshUI();
+            };
+
+            const applyClassBonus = () => {
+                if(p.class === 'Guerreiro') { p.baseAtk += 5; p.maxHp += 50; }
+                if(p.class === 'Mago') { p.baseAtk += 15; p.maxHp -= 20; }
+                p.hp = p.maxHp;
+            };
+
             const getStats = () => {
-                let atk = state.player.baseAtk;
-                let def = state.player.baseDef;
-                
-                if(state.player.equipped.weapon) atk += ITEMS[state.player.equipped.weapon].atk;
-                if(state.player.equipped.armor) def += ITEMS[state.player.equipped.armor].def;
-                
+                let atk = p.baseAtk + (p.equipped.weapon ? DATABASE.items[p.equipped.weapon].atk : 0);
+                let def = p.baseDef + (p.equipped.armor ? DATABASE.items[p.equipped.armor].def : 0);
                 return { atk, def };
             };
 
-            // --- SISTEMA DE UI (RENDERING) ---
-            const updateUI = () => {
+            // -- ACTIONS --
+            const combat = () => {
+                if(p.hp <= 15) return log("Você está exausto demais para lutar!", "var(--red)");
+                
+                const monster = DATABASE.monsters[Math.floor(Math.random() * Math.min(p.lvl, 3))];
                 const stats = getStats();
-                const p = state.player;
+                
+                // Simulação de Turnos Simplificada
+                const damageDealt = stats.atk + Math.floor(Math.random() * p.baseLuk);
+                const damageTaken = Math.max(2, monster.atk - Math.floor(stats.def / 2));
 
-                document.getElementById('ui-hero-name').innerText = p.name;
+                p.hp -= damageTaken;
+                p.exp += monster.xp;
+                p.gold += monster.gold;
+                if(Math.random() > 0.7) p.mats += 1;
+
+                log(`Batalha: Você derrotou um ${monster.name}!`);
+                log(`Recebeu ${damageTaken} de dano | Causou ${damageDealt} | +${monster.xp} XP.`, "var(--white)");
+
+                // Chance de Drop
+                if(Math.random() > 0.85) {
+                    const keys = Object.keys(DATABASE.items);
+                    const drop = keys[Math.floor(Math.random() * keys.length)];
+                    if(p.inv.length < 12) {
+                        p.inv.push(drop);
+                        log(`DROP: Você encontrou ${DATABASE.items[drop].name}!`, "var(--gold)");
+                    }
+                }
+
+                checkLevel();
+                refreshUI();
+            };
+
+            const checkLevel = () => {
+                if(p.exp >= p.nextLvl) {
+                    p.lvl++;
+                    p.exp = 0;
+                    p.nextLvl = Math.floor(p.nextLvl * 1.6);
+                    p.maxHp += 20;
+                    p.hp = p.maxHp;
+                    p.baseAtk += 4;
+                    log(`LEVEL UP! Você agora é nível ${p.lvl}!`, "var(--blue)");
+                }
+            };
+
+            const rest = () => {
+                if(p.gold < 10) return log("Ouro insuficiente para descansar.");
+                p.gold -= 10;
+                p.hp = p.maxHp;
+                log("Você descansou na estalagem e recuperou todas as forças.");
+                refreshUI();
+            };
+
+            const trade = () => {
+                // Sistema de Trade (Venda de itens por ouro)
+                if(p.inv.length === 0) return log("Sua mochila está vazia.");
+                const index = p.inv.length - 1;
+                p.inv.splice(index, 1);
+                p.gold += 25;
+                log("Trade: Você vendeu um item por 25 moedas de ouro.");
+                refreshUI();
+            };
+
+            const blacksmith = () => {
+                const costGold = p.lvl * 30;
+                const costMats = p.lvl * 2;
+                if(p.gold >= costGold && p.mats >= costMats) {
+                    p.gold -= costGold;
+                    p.mats -= costMats;
+                    p.baseAtk += 5;
+                    log(`Ferreiro: Suas armas foram afiadas! +5 ATK.`, "var(--gold)");
+                } else {
+                    log(`O Ferreiro exige ${costGold}G e ${costMats} materiais.`);
+                }
+                refreshUI();
+            };
+
+            // -- UI & INVENTORY --
+            const refreshUI = () => {
+                const stats = getStats();
+                document.getElementById('ui-name').innerText = p.name + " (" + p.class + ")";
                 document.getElementById('ui-lvl').innerText = p.lvl;
-                document.getElementById('ui-gold').innerText = Math.floor(p.gold);
+                document.getElementById('ui-gold').innerText = p.gold;
                 document.getElementById('ui-mats').innerText = p.mats;
                 document.getElementById('ui-atk').innerText = stats.atk;
                 document.getElementById('ui-def').innerText = stats.def;
                 document.getElementById('ui-luk').innerText = p.baseLuk;
-                document.getElementById('ui-hp-text').innerText = `${Math.floor(p.hp)} / ${p.maxHp}`;
+                document.getElementById('ui-hp-txt').innerText = `${Math.max(0, Math.floor(p.hp))}/${p.maxHp}`;
                 
-                document.getElementById('bar-hp').style.width = (p.hp / p.maxHp * 100) + "%";
-                document.getElementById('bar-exp').style.width = (p.exp / (state.config.expBase * Math.pow(state.config.expGrowth, p.lvl-1)) * 100) + "%";
+                document.getElementById('ui-hp-bar').style.width = (p.hp/p.maxHp*100) + "%";
+                document.getElementById('ui-exp-bar').style.width = (p.exp/p.nextLvl*100) + "%";
+                
+                document.getElementById('ui-equip-weapon').innerText = "Arma: " + (p.equipped.weapon ? DATABASE.items[p.equipped.weapon].name : "Nenhuma");
+                document.getElementById('ui-equip-armor').innerText = "Armadura: " + (p.equipped.armor ? DATABASE.items[p.equipped.armor].name : "Nenhuma");
 
                 renderInventory();
+                save(); // Auto-save em cada ação
             };
 
             const renderInventory = () => {
-                const container = document.getElementById('inventory-slots');
-                container.innerHTML = "";
+                const grid = document.getElementById('ui-inventory');
+                grid.innerHTML = "";
                 for(let i=0; i<12; i++) {
                     const slot = document.createElement('div');
-                    slot.className = 'item-slot';
-                    const itemId = state.player.inventory[i];
-                    
+                    slot.className = 'slot';
+                    const itemId = p.inv[i];
                     if(itemId) {
-                        const item = ITEMS[itemId];
+                        const item = DATABASE.items[itemId];
                         slot.innerHTML = item.icon;
                         slot.style.color = `var(--rarity-${item.rarity})`;
-                        if(state.player.equipped.weapon === itemId || state.player.equipped.armor === itemId) {
-                            slot.classList.add('equipped');
-                        }
+                        if(p.equipped.weapon === itemId || p.equipped.armor === itemId) slot.classList.add('equipped');
                         slot.onclick = () => useItem(i);
                     }
-                    container.appendChild(slot);
+                    grid.appendChild(slot);
                 }
-            };
-
-            // --- MOTOR DE AÇÕES ---
-            const action = (type) => {
-                if(state.isBusy) return;
-                state.isBusy = true;
-                
-                // Feedback visual de ação
-                const btn = document.activeElement;
-                if(btn) btn.disabled = true;
-
-                setTimeout(() => {
-                    switch(type) {
-                        case 'explore': exploreLogic(); break;
-                        case 'blacksmith': upgradeLogic(); break;
-                        case 'rest': restLogic(); break;
-                    }
-                    state.isBusy = false;
-                    if(btn) btn.disabled = false;
-                    updateUI();
-                }, 400); // Global Cooldown de 400ms
-            };
-
-            const exploreLogic = () => {
-                if(state.player.hp <= 20) return log("Você está muito fraco para explorar!", "orange");
-                
-                const win = Math.random() > 0.3;
-                if(win) {
-                    const gainGold = 10 + (state.player.lvl * 2);
-                    const gainExp = 25;
-                    state.player.gold += gainGold;
-                    state.player.exp += gainExp;
-                    state.player.hp -= 15;
-                    log(`Vitória! +${gainGold} gold, +${gainExp} exp.`, "#44ff44");
-                    
-                    // Drop de Item (Lógica de IDs)
-                    if(Math.random() > 0.8) {
-                        const keys = Object.keys(ITEMS);
-                        const drop = keys[Math.floor(Math.random()*keys.length)];
-                        if(state.player.inventory.length < 12) {
-                            state.player.inventory.push(drop);
-                            log(`DROP: Você encontrou ${ITEMS[drop].name}!`, "var(--gold)");
-                        }
-                    }
-                } else {
-                    state.player.hp -= 30;
-                    log("Derrota! Você fugiu ferido.", "#ff4444");
-                }
-                checkLevelUp();
             };
 
             const useItem = (index) => {
-                const itemId = state.player.inventory[index];
-                const item = ITEMS[itemId];
-                
-                if(item.type === 'weapon') state.player.equipped.weapon = itemId;
-                if(item.type === 'armor') state.player.equipped.armor = itemId;
-                if(item.type === 'consumable') {
-                    state.player.hp = Math.min(state.player.maxHp, state.player.hp + item.heal);
-                    state.player.inventory.splice(index, 1);
+                const id = p.inv[index];
+                const item = DATABASE.items[id];
+                if(item.type === 'use') {
+                    p.hp = Math.min(p.maxHp, p.hp + item.heal);
+                    p.inv.splice(index, 1);
+                } else if(item.type === 'weapon') {
+                    p.equipped.weapon = (p.equipped.weapon === id) ? null : id;
+                } else if(item.type === 'armor') {
+                    p.equipped.armor = (p.equipped.armor === id) ? null : id;
                 }
-                log(`Você interagiu com ${item.name}.`);
-                updateUI();
-            };
-
-            const checkLevelUp = () => {
-                const needed = state.config.expBase * Math.pow(state.config.expGrowth, state.player.lvl - 1);
-                if(state.player.exp >= needed) {
-                    state.player.lvl++;
-                    state.player.exp = 0;
-                    state.player.maxHp += 20;
-                    state.player.hp = state.player.maxHp;
-                    state.player.baseAtk += 3;
-                    log(`LEVEL UP! Você alcançou o nível ${state.player.lvl}`, "cyan");
-                }
+                refreshUI();
             };
 
             const log = (msg, color = "#888") => {
-                const l = document.getElementById('log');
-                l.innerHTML = `<div class="log-entry" style="color:${color}">[${new Date().toLocaleTimeString()}] ${msg}</div>` + l.innerHTML;
+                const area = document.getElementById('ui-log');
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.style.color = color;
+                entry.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                area.prepend(entry);
             };
 
-            // --- PERSISTÊNCIA ---
             const save = () => {
-                localStorage.setItem('eldoria_pro_save', JSON.stringify(state.player));
-                log("Sincronizando com a nuvem... Sucesso!", "var(--gold)");
+                localStorage.setItem(`eldoria_save_${p.name}`, JSON.stringify(p));
             };
 
-            const start = () => {
-                const name = document.getElementById('p-name').value || "Herói";
-                const saved = localStorage.getItem('eldoria_pro_save');
-                if(saved) {
-                    state.player = JSON.parse(saved);
-                    log("Crônicas carregadas.");
-                } else {
-                    state.player.name = name;
-                }
-                document.getElementById('overlay').style.display = 'none';
-                updateUI();
-            };
-
-            return { start, action, save };
+            return { init, combat, rest, trade, blacksmith, save };
         })();
     </script>
 </body>
