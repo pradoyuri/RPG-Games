@@ -3,565 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELDORIA ONLINE | Aincrad Protocol</title>
+    <title>Eldoria Pro - Professional RPG Engine</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Quicksand:wght@300;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;700&display=swap');
 
         :root {
-            --sao-blue: #00aeef;
-            --sao-orange: #f7941d;
-            --hp-green: #2ecc71;
-            --hp-red: #e74c3c;
-            --panel-glass: rgba(0, 0, 0, 0.85);
-            --border-glow: 1px solid rgba(0, 174, 239, 0.5);
+            --gold: #FFD700; --crimson: #800000; --mana: #1E90FF;
+            --surface: #121212; --panel: #1E1E1E; --border: #333;
+            --rarity-0: #fff; --rarity-1: #1eff00; --rarity-2: #0070dd; --rarity-3: #a335ee;
         }
 
-        * { box-sizing: border-box; user-select: none; }
-
-        body {
-            background: #050505; color: white;
-            font-family: 'Quicksand', sans-serif;
-            margin: 0; overflow: hidden;
-            display: flex; justify-content: center; align-items: center; height: 100vh;
+        body { 
+            background: #000; color: #f0f0f0; font-family: 'Inter', sans-serif; 
+            margin: 0; display: flex; height: 100vh; overflow: hidden;
         }
 
-        /* UI Estilo SAO - Limpa e Transparente */
-        #link-start-screen {
-            position: fixed; inset: 0; background: radial-gradient(circle, #111, #000);
-            z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        /* Layout Profissional */
+        #app {
+            display: grid; grid-template-columns: 320px 1fr 350px;
+            grid-template-rows: 60px 1fr 200px; width: 100%; gap: 2px; background: var(--border);
         }
 
-        .hud-container {
-            width: 1200px; height: 800px;
-            display: grid; grid-template-columns: 320px 1fr 300px; grid-template-rows: auto 1fr auto;
-            gap: 15px; padding: 20px; position: relative;
-        }
+        .panel { background: var(--surface); padding: 20px; overflow-y: auto; }
 
-        /* HP Bar Estilo SAO (Inclinada) */
-        .player-vitals {
-            grid-column: 1; background: var(--panel-glass); padding: 15px;
-            clip-path: polygon(0 0, 100% 0, 90% 100%, 0% 100%);
-            border-left: 5px solid var(--sao-blue);
-        }
+        header { grid-column: 1 / 4; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; background: #0a0a0a; }
 
-        .hp-bar-outer {
-            width: 100%; height: 25px; background: #333; margin: 10px 0;
-            transform: skewX(-20deg); border: 1px solid #000; overflow: hidden;
-        }
+        /* Atributos e Stats */
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+        .stat-value { font-weight: bold; color: var(--gold); }
 
-        #hp-fill {
-            height: 100%; background: var(--hp-green); width: 100%;
-            transition: width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.5s;
-        }
+        /* Progress Bars */
+        .bar-wrap { width: 100%; height: 12px; background: #222; border-radius: 6px; margin: 4px 0 15px; overflow: hidden; border: 1px solid #333; }
+        .bar-fill { height: 100%; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* Main Viewport */
-        .world-view {
-            grid-column: 2; background: url('https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1000&q=80');
-            background-size: cover; border: var(--border-glow); position: relative;
-            box-shadow: inset 0 0 100px #000;
-        }
+        /* World View */
+        #world-display { grid-column: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); }
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 80%; max-width: 500px; }
 
-        .combat-log {
-            position: absolute; bottom: 0; width: 100%; height: 150px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.9));
-            padding: 15px; font-family: 'Consolas', monospace; font-size: 13px;
-            overflow-y: auto; color: #00aeef;
+        /* Inventory System */
+        .inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .item-slot { 
+            aspect-ratio: 1; background: #1a1a1a; border: 1px solid #333; 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; font-size: 24px; position: relative; transition: 0.2s;
         }
+        .item-slot:hover { border-color: var(--gold); background: #252525; }
+        .item-slot.equipped { border: 1px solid var(--gold); box-shadow: 0 0 10px rgba(255,215,0,0.2); }
 
-        /* Inventory & Skills */
-        .right-panel { grid-row: 1 / 4; background: var(--panel-glass); border-left: var(--border-glow); padding: 20px; }
+        /* Combat Log */
+        #log { grid-column: 2; grid-row: 3; background: #080808; border-top: 1px solid #222; padding: 15px; font-family: 'monospace'; font-size: 13px; color: #888; }
+        .log-entry { margin-bottom: 4px; border-left: 2px solid #333; padding-left: 8px; }
 
-        .item-slot {
-            width: 60px; height: 60px; background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(0,174,239,0.2); margin-bottom: 5px;
-            display: inline-flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.2s;
+        /* Buttons */
+        .btn {
+            background: none; border: 1px solid var(--gold); color: var(--gold);
+            padding: 12px 24px; font-family: 'Cinzel'; cursor: pointer;
+            transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px;
         }
-        .item-slot:hover { border-color: var(--sao-blue); background: rgba(0,174,239,0.1); }
+        .btn:hover:not(:disabled) { background: var(--gold); color: #000; box-shadow: 0 0 15px rgba(255,215,0,0.3); }
+        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; }
 
-        .btn-sao {
-            width: 100%; padding: 12px; background: none; border: 1px solid var(--sao-blue);
-            color: var(--sao-blue); font-family: 'Orbitron'; font-size: 10px;
-            margin-bottom: 10px; cursor: pointer; transition: 0.3s;
-        }
-        .btn-sao:hover { background: var(--sao-blue); color: #000; box-shadow: 0 0 15px var(--sao-blue); }
-
-        /* Animações de Dano */
-        .shake { animation: shake 0.4s; }
-        @keyframes shake {
-            0% { transform: translate(1px, 1px); }
-            20% { transform: translate(-3px, 0); }
-            40% { transform: translate(3px, 2px); }
-            100% { transform: translate(0, 0); }
-        }
+        /* Overlays */
+        #overlay { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-    <div id="link-start-screen">
-        <h1 style="font-family: 'Orbitron'; color: var(--sao-blue); letter-spacing: 10px;">LINK START</h1>
-        <input type="text" id="player-name" placeholder="IDENTIFICADOR" style="background:none; border:none; border-bottom: 2px solid white; color:white; text-align:center; outline:none; font-size: 1.5em; margin: 20px;">
-        <button class="btn-sao" style="width: 200px;" onclick="Engine.boot()">LOGIN</button>
+    <div id="overlay">
+        <h1 style="font-family: 'Cinzel'; color: var(--gold); font-size: 3rem; margin-bottom: 0;">ELDORIA PRO</h1>
+        <p style="color: #666; margin-bottom: 40px;">Professional RPG Framework</p>
+        <input type="text" id="p-name" placeholder="NOME DO PERSONAGEM" style="padding: 15px; background: #111; border: 1px solid var(--gold); color: #fff; width: 300px; text-align: center;">
+        <br>
+        <button class="btn" onclick="Engine.start()">DESPERTAR</button>
     </div>
 
-    <div class="hud-container">
-        <section class="player-vitals">
-            <div id="ui-name" style="font-family: 'Orbitron'; font-size: 1.2em;">PLAYER_NAME</div>
-            <div style="font-size: 0.8em; opacity: 0.7;" id="ui-class">SOLO_PLAYER</div>
-            <div class="hp-bar-outer">
-                <div id="hp-fill"></div>
+    <div id="app">
+        <header>
+            <div id="ui-hero-name" style="font-family: 'Cinzel'; font-size: 1.2rem; color: var(--gold);">---</div>
+            <div style="display: flex; gap: 30px;">
+                <span>GOLD: <b id="ui-gold" style="color: var(--gold);">0</b></span>
+                <span>MATERIAIS: <b id="ui-mats" style="color: #aaa;">0</b></span>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.8em;">
-                <span>LVL <b id="ui-lvl">1</b></span>
-                <span id="ui-hp-text">100/100</span>
+            <button class="btn" style="padding: 5px 15px; font-size: 10px;" onclick="Engine.save()">SALVAR CLOUD (LOCAL)</button>
+        </header>
+
+        <aside class="panel">
+            <h3 style="font-family: 'Cinzel'; margin-top: 0;">STATUS DO HERÓI</h3>
+            <div class="stat-row"><span>NÍVEL</span><span id="ui-lvl" class="stat-value">1</span></div>
+            <div class="bar-wrap"><div id="bar-exp" class="bar-fill" style="background: var(--mana); width: 0%"></div></div>
+            
+            <div class="stat-row"><span>VITALIDADE</span><span id="ui-hp-text" class="stat-value">0/0</span></div>
+            <div class="bar-wrap"><div id="bar-hp" class="bar-fill" style="background: var(--crimson); width: 100%"></div></div>
+
+            <div style="background: #111; padding: 15px; border-radius: 4px; margin-top: 20px;">
+                <div class="stat-row"><span>ATAQUE TOTAL</span><span id="ui-atk" class="stat-value">0</span></div>
+                <div class="stat-row"><span>DEFESA TOTAL</span><span id="ui-def" class="stat-value">0</span></div>
+                <div class="stat-row"><span>SORTE</span><span id="ui-luk" class="stat-value">0</span></div>
             </div>
         </aside>
 
-        <main class="world-view" id="world-frame">
-            <div style="padding: 20px;">
-                <h3 id="location-title" style="color: var(--sao-blue);">FLOR DE LÓTUS - ANDAR 1</h3>
-            </div>
-            
-            <div class="combat-log" id="log">
-                [SYSTEM]: Protocolo inicializado. Bem-vindo ao Sistema Eldoria.
+        <main id="world-display">
+            <div id="scene-title" style="font-family: 'Cinzel'; font-size: 1.5rem; margin-bottom: 30px; color: #fff;">VILAREJO DE ÁRATHON</div>
+            <div class="action-grid">
+                <button class="btn" id="btn-explore" onclick="Engine.action('explore')">Explorar Arredores</button>
+                <button class="btn" id="btn-blacksmith" onclick="Engine.action('blacksmith')">Ferreiro Real</button>
+                <button class="btn" id="btn-rest" onclick="Engine.action('rest')">Descansar</button>
+                <button class="btn" id="btn-trade" onclick="Engine.action('trade')">Mercado</button>
             </div>
         </main>
 
-        <aside class="right-panel">
-            <h4 style="font-family: 'Orbitron'; color: var(--sao-blue); border-bottom: 1px solid #333;">SKILLS & ITEMS</h4>
-            <div id="inventory-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 20px;">
+        <section class="panel">
+            <h3 style="font-family: 'Cinzel'; margin-top: 0;">INVENTÁRIO</h3>
+            <div class="inv-grid" id="inventory-slots">
                 </div>
-            
-            <div class="actions">
-                <button class="btn-sao" onclick="Engine.executeAction('explore')">EXPLORAR ÁREA</button>
-                <button class="btn-sao" onclick="Engine.executeAction('rest')">ESTALAGEM (REGEN)</button>
-                <button class="btn-sao" onclick="Engine.executeAction('blacksmith')">FERREIRO LISBETH</button>
-                <button class="btn-sao" onclick="Engine.save()">SYNC DATA</button>
+            <div id="item-tooltip" style="margin-top: 20px; font-size: 12px; color: #888; border-top: 1px solid #222; padding-top: 10px;">
+                Selecione um item para ver detalhes ou equipar.
             </div>
+        </section>
 
-            <div id="stats-detail" style="font-size: 0.8em; margin-top: 20px; color: #888; border-top: 1px solid #333; padding-top: 10px;">
-                STR: <span id="st-str">0</span> | AGI: <span id="st-agi">0</span> | INT: <span id="st-int">0</span><br>
-                CASH: <span id="st-gold" style="color: var(--gold);">0</span> Col
-            </div>
-        </aside>
+        <div id="log"></div>
     </div>
 
     <script>
         /**
-         * ENGINE PROFISSIONAL v4.0
-         * Foco: Real-time, POO e Imersão
+         * ENGINE CORE - DESIGN PATTERN: SINGLETON MODULE
+         * Gerenciamento de estado imutável e lógica desacoplada.
          */
-        
-        class Player {
-            constructor(name, charClass) {
-                this.name = name;
-                this.class = charClass;
-                this.lvl = 1;
-                this.hp = 100;
-                this.maxHp = 100;
-                this.exp = 0;
-                this.gold = 100;
-                this.stats = { str: 10, agi: 10, int: 10 };
-                this.inventory = [];
-                this.weaponLvl = 0;
-            }
+        const Engine = (() => {
+            // Estado Privado
+            let state = {
+                player: {
+                    name: "Aventureiro", lvl: 1, exp: 0, gold: 100, mats: 0,
+                    baseAtk: 10, baseDef: 5, baseLuk: 5,
+                    hp: 100, maxHp: 100,
+                    inventory: [],
+                    equipped: { weapon: null, armor: null }
+                },
+                isBusy: false,
+                config: { expBase: 100, expGrowth: 1.5 }
+            };
 
-            regenerate() {
-                if (this.hp < this.maxHp && this.hp > 0) {
-                    this.hp = Math.min(this.maxHp, this.hp + (this.maxHp * 0.01)); // 1% regen por tick
-                }
-            }
-        }
+            // Database de Itens (Imutável)
+            const ITEMS = {
+                W01: { id: 'W01', name: "Espada Curta", atk: 5, icon: "🗡️", type: 'weapon', rarity: 0 },
+                W02: { id: 'W02', name: "Machado de Guerra", atk: 15, icon: "🪓", type: 'weapon', rarity: 1 },
+                A01: { id: 'A01', name: "Couraça de Couro", def: 8, icon: "🛡️", type: 'armor', rarity: 0 },
+                P01: { id: 'P01', name: "Poção de Vida", heal: 50, icon: "🧪", type: 'consumable', rarity: 0 }
+            };
 
-        const Engine = {
-            player: null,
-            isBattle: false,
-            
-            boot() {
-                const name = document.getElementById('player-name').value;
-                if (!name) return;
-
-                // Tentar carregar save
-                const rawSave = localStorage.getItem(`sao_save_${name}`);
-                if (rawSave) {
-                    this.player = Object.assign(new Player(), JSON.parse(rawSave));
-                    this.log("Dados sincronizados com o Servidor Cardinal.", "var(--sao-blue)");
-                } else {
-                    this.player = new Player(name, "Solo Player");
-                    this.log("Novo registro de usuário criado.", "var(--sao-orange)");
-                }
-
-                document.getElementById('link-start-screen').style.display = 'none';
-                this.startHeartbeat();
-                this.updateUI();
-            },
-
-            // O Coração do Jogo (Roda em tempo real)
-            startHeartbeat() {
-                setInterval(() => {
-                    this.player.regenerate();
-                    this.updateUI();
-                }, 3000); // Ticker de 3 segundos
-            },
-
-            executeAction(action) {
-                const frame = document.getElementById('world-frame');
+            // --- LÓGICA DE ATRIBUTOS (CÁLCULO DINÂMICO) ---
+            const getStats = () => {
+                let atk = state.player.baseAtk;
+                let def = state.player.baseDef;
                 
-                if (action === 'explore') {
-                    this.isBattle = true;
-                    frame.classList.add('shake');
-                    setTimeout(() => frame.classList.remove('shake'), 400);
+                if(state.player.equipped.weapon) atk += ITEMS[state.player.equipped.weapon].atk;
+                if(state.player.equipped.armor) def += ITEMS[state.player.equipped.armor].def;
+                
+                return { atk, def };
+            };
+
+            // --- SISTEMA DE UI (RENDERING) ---
+            const updateUI = () => {
+                const stats = getStats();
+                const p = state.player;
+
+                document.getElementById('ui-hero-name').innerText = p.name;
+                document.getElementById('ui-lvl').innerText = p.lvl;
+                document.getElementById('ui-gold').innerText = Math.floor(p.gold);
+                document.getElementById('ui-mats').innerText = p.mats;
+                document.getElementById('ui-atk').innerText = stats.atk;
+                document.getElementById('ui-def').innerText = stats.def;
+                document.getElementById('ui-luk').innerText = p.baseLuk;
+                document.getElementById('ui-hp-text').innerText = `${Math.floor(p.hp)} / ${p.maxHp}`;
+                
+                document.getElementById('bar-hp').style.width = (p.hp / p.maxHp * 100) + "%";
+                document.getElementById('bar-exp').style.width = (p.exp / (state.config.expBase * Math.pow(state.config.expGrowth, p.lvl-1)) * 100) + "%";
+
+                renderInventory();
+            };
+
+            const renderInventory = () => {
+                const container = document.getElementById('inventory-slots');
+                container.innerHTML = "";
+                for(let i=0; i<12; i++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'item-slot';
+                    const itemId = state.player.inventory[i];
                     
-                    const monsterPower = this.player.lvl * 12;
-                    const dmgTaken = Math.max(5, monsterPower - (this.player.stats.agi / 2));
-                    const dmgDealt = this.player.stats.str + (this.player.weaponLvl * 5);
+                    if(itemId) {
+                        const item = ITEMS[itemId];
+                        slot.innerHTML = item.icon;
+                        slot.style.color = `var(--rarity-${item.rarity})`;
+                        if(state.player.equipped.weapon === itemId || state.player.equipped.armor === itemId) {
+                            slot.classList.add('equipped');
+                        }
+                        slot.onclick = () => useItem(i);
+                    }
+                    container.appendChild(slot);
+                }
+            };
 
-                    this.player.hp -= dmgTaken;
-                    this.player.exp += 40;
-                    this.player.gold += 15;
+            // --- MOTOR DE AÇÕES ---
+            const action = (type) => {
+                if(state.isBusy) return;
+                state.isBusy = true;
+                
+                // Feedback visual de ação
+                const btn = document.activeElement;
+                if(btn) btn.disabled = true;
 
-                    this.log(`Combate: Inimigo atingido (${dmgDealt} dmg). Dano recebido: ${dmgTaken}`, "#ff4d4d");
+                setTimeout(() => {
+                    switch(type) {
+                        case 'explore': exploreLogic(); break;
+                        case 'blacksmith': upgradeLogic(); break;
+                        case 'rest': restLogic(); break;
+                    }
+                    state.isBusy = false;
+                    if(btn) btn.disabled = false;
+                    updateUI();
+                }, 400); // Global Cooldown de 400ms
+            };
+
+            const exploreLogic = () => {
+                if(state.player.hp <= 20) return log("Você está muito fraco para explorar!", "orange");
+                
+                const win = Math.random() > 0.3;
+                if(win) {
+                    const gainGold = 10 + (state.player.lvl * 2);
+                    const gainExp = 25;
+                    state.player.gold += gainGold;
+                    state.player.exp += gainExp;
+                    state.player.hp -= 15;
+                    log(`Vitória! +${gainGold} gold, +${gainExp} exp.`, "#44ff44");
                     
-                    if (this.player.hp <= 0) {
-                        this.log("FATAL ERROR: HP em Zero. Redirecionando...", "red");
-                        this.player.hp = 1; // Proteção contra morte definitiva neste protótipo
+                    // Drop de Item (Lógica de IDs)
+                    if(Math.random() > 0.8) {
+                        const keys = Object.keys(ITEMS);
+                        const drop = keys[Math.floor(Math.random()*keys.length)];
+                        if(state.player.inventory.length < 12) {
+                            state.player.inventory.push(drop);
+                            log(`DROP: Você encontrou ${ITEMS[drop].name}!`, "var(--gold)");
+                        }
                     }
-                    this.checkLevelUp();
-                }
-
-                if (action === 'rest') {
-                    if (this.player.gold < 20) return this.log("Dinheiro insuficiente para a estalagem.");
-                    this.player.gold -= 20;
-                    this.player.hp = this.player.maxHp;
-                    this.log("Descanso concluído. Integridade restaurada.");
-                }
-
-                if (action === 'blacksmith') {
-                    const cost = (this.player.weaponLvl + 1) * 100;
-                    if (this.player.gold >= cost) {
-                        this.player.gold -= cost;
-                        this.player.weaponLvl++;
-                        this.player.stats.str += 5;
-                        this.log(`Sucesso! Espada reforçada para +${this.player.weaponLvl}`, "cyan");
-                    } else {
-                        this.log(`A ferreira Lisbeth exige ${cost} Col para este serviço.`);
-                    }
-                }
-
-                this.updateUI();
-            },
-
-            checkLevelUp() {
-                const nextLvlExp = this.player.lvl * 100;
-                if (this.player.exp >= nextLvlExp) {
-                    this.player.lvl++;
-                    this.player.exp = 0;
-                    this.player.maxHp += 50;
-                    this.player.hp = this.player.maxHp;
-                    this.player.stats.str += 3;
-                    this.player.stats.agi += 2;
-                    this.log(`LEVEL UP: Agora você é nível ${this.p.lvl}. Atributos sincronizados.`, "gold");
-                }
-            },
-
-            log(msg, color = "#fff") {
-                const logBox = document.getElementById('log');
-                const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                logBox.innerHTML = `<div><span style="color:rgba(255,255,255,0.3)">[${time}]</span> <span style="color:${color}">${msg}</span></div>` + logBox.innerHTML;
-            },
-
-            save() {
-                localStorage.setItem(`sao_save_${this.player.name}`, JSON.stringify(this.player));
-                this.log("Dados salvos com sucesso.", "var(--sao-blue)");
-            },
-
-            updateUI() {
-                if (!this.player) return;
-                
-                document.getElementById('ui-name').innerText = this.player.name.toUpperCase();
-                document.getElementById('ui-lvl').innerText = this.player.lvl;
-                document.getElementById('ui-hp-text').innerText = `${Math.floor(this.player.hp)} / ${this.player.maxHp}`;
-                document.getElementById('st-str').innerText = this.player.stats.str;
-                document.getElementById('st-agi').innerText = this.player.stats.agi;
-                document.getElementById('st-int').innerText = this.player.stats.int;
-                document.getElementById('st-gold').innerText = this.player.gold;
-
-                const hpFill = document.getElementById('hp-fill');
-                const perc = (this.player.hp / this.player.maxHp) * 100;
-                hpFill.style.width = perc + "%";
-
-                // Feedback visual de HP baixo
-                if (perc < 25) {
-                    hpFill.style.background = "var(--hp-red)";
-                    hpFill.style.boxShadow = "0 0 15px var(--hp-red)";
                 } else {
-                    hpFill.style.background = "var(--hp-green)";
-                    hpFill.style.boxShadow = "none";
+                    state.player.hp -= 30;
+                    log("Derrota! Você fugiu ferido.", "#ff4444");
                 }
-            }
-        };
-    </script>
-</body>
-</html>
+                checkLevelUp();
+            };
 
-        /* Lobby de Login */
-        #login-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .btn {
-            background: var(--medieval-gold);
-            color: black;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        /* Interface do Jogo */
-        .panel { background: #333; border: 1px solid #555; padding: 10px; overflow-y: auto; }
-        
-        header { grid-column: 1 / 4; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--medieval-gold); }
-        
-        #stats-panel { grid-column: 1; display: flex; flex-direction: column; gap: 5px; }
-        
-        #main-display { grid-column: 2; display: flex; flex-direction: column; }
-        
-        #multiplayer-chat { grid-column: 3; font-size: 0.8em; }
-
-        #action-log { flex-grow: 1; background: #111; padding: 10px; font-family: monospace; font-size: 0.9em; margin-bottom: 10px; border: 1px inset #000; }
-
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-
-        .class-icon { font-size: 2em; display: block; margin-bottom: 10px; }
-        
-        .progress-bar { width: 100%; background: #000; height: 10px; border-radius: 5px; margin: 5px 0; }
-        .progress-fill { height: 100%; background: #4caf50; width: 0%; transition: width 0.3s; }
-    </style>
-</head>
-<body>
-
-    <div id="game-container">
-        <div id="login-screen">
-            <h1>ELDORIA ONLINE</h1>
-            <input type="text" id="username" placeholder="Nome do Herói...">
-            <select id="class-select">
-                <option value="Guerreiro">Guerreiro (Força/Vigor)</option>
-                <option value="Arqueiro">Arqueiro (Agilidade/Sorte)</option>
-                <option value="Mago">Mago (Inteligência)</option>
-                <option value="Healer">Healer (Vigor/Inteligência)</option>
-            </select>
-            <button class="btn" onclick="startGame()">Entrar no Reino</button>
-        </div>
-
-        <header class="panel">
-            <div id="player-name-display">Aventureiro</div>
-            <div>Ouro: <span id="gold-val" style="color: gold;">0</span></div>
-            <button onclick="saveGame()" style="font-size: 0.7em;">Salvar Conta</button>
-        </header>
-
-        <aside id="stats-panel" class="panel">
-            <h3>Status</h3>
-            <div id="class-display" style="color: var(--medieval-gold);">Classe</div>
-            <div>Nível: <span id="lvl-val">1</span></div>
-            <div class="progress-bar"><div id="exp-fill" class="progress-fill" style="background: #2196f3;"></div></div>
-            <hr>
-            <div>HP: <span id="hp-val">100/100</span></div>
-            <div class="progress-bar"><div id="hp-fill" class="progress-fill"></div></div>
-            <div id="attr-list" style="font-size: 0.9em;">
-                STR: 0 | AGI: 0 | INT: 0
-            </div>
-            <hr>
-            <h4>Equipamento</h4>
-            <div id="equip-val" style="font-size: 0.8em; color: #aaa;">Trapos Velhos +0</div>
-        </aside>
-
-        <main id="main-display" class="panel">
-            <div id="action-log"></div>
-            <div class="controls">
-                <button class="btn" onclick="explore()">Explorar Floresta</button>
-                <button class="btn" onclick="visitBlacksmith()">Ferreiro</button>
-                <button class="btn" onclick="openTrade()">Trocar (Trade)</button>
-                <button class="btn" onclick="rest()">Descansar (HP)</button>
-            </div>
-        </main>
-
-        <section id="multiplayer-chat" class="panel">
-            <h4>Lobby Global</h4>
-            <div id="chat-content" style="height: 350px; overflow-y: auto;"></div>
-        </section>
-    </div>
-
-    <script>
-        // --- MOTOR DO JOGO (ENGINE) ---
-        let p = {
-            name: "",
-            class: "",
-            lvl: 1,
-            exp: 0,
-            nextLvl: 100,
-            hp: 100,
-            maxHp: 100,
-            gold: 50,
-            str: 5, agi: 5, int: 5, vit: 5, luk: 5,
-            weaponLvl: 0,
-            materials: 0
-        };
-
-        const logs = document.getElementById('action-log');
-        const chat = document.getElementById('chat-content');
-
-        function logMsg(msg, color = "#fff") {
-            logs.innerHTML += `<div style="color: ${color}">> ${msg}</div>`;
-            logs.scrollTop = logs.scrollHeight;
-        }
-
-        function chatMsg(user, msg) {
-            chat.innerHTML += `<div><strong>${user}:</strong> ${msg}</div>`;
-            chat.scrollTop = chat.scrollHeight;
-        }
-
-        // --- SISTEMA DE LOGIN E SAVE ---
-        function startGame() {
-            const name = document.getElementById('username').value;
-            if(!name) return alert("Escolha um nome!");
-            
-            p.name = name;
-            p.class = document.getElementById('class-select').value;
-            
-            // Inicializar Atributos por Classe
-            if(p.class === "Guerreiro") { p.str = 10; p.vit = 8; }
-            if(p.class === "Mago") { p.int = 12; p.maxHp = 80; }
-            if(p.class === "Arqueiro") { p.agi = 10; p.luk = 8; }
-            
-            // Carregar save se existir
-            const saved = localStorage.getItem('eldoria_save_' + name);
-            if(saved) {
-                p = JSON.parse(saved);
-                logMsg("Conta carregada com sucesso!", "cyan");
-            }
-
-            document.getElementById('login-screen').style.display = 'none';
-            updateUI();
-            logMsg(`Bem-vindo a Eldoria, ${p.name} o ${p.class}!`);
-            
-            // Simular Multiplayer
-            setInterval(simulateMultiplayer, 5000);
-        }
-
-        function saveGame() {
-            localStorage.setItem('eldoria_save_' + p.name, JSON.stringify(p));
-            logMsg("Progresso salvo localmente.", "gold");
-        }
-
-        // --- SISTEMA DE COMBATE E EXPLORAÇÃO ---
-        function explore() {
-            if(p.hp <= 0) return logMsg("Você está exausto! Descanse.", "red");
-            
-            const event = Math.random();
-            if(event > 0.4) {
-                // Combate
-                let monsterHp = 20 + (p.lvl * 5);
-                let dmgDealt = p.str + (p.weaponLvl * 2) + Math.floor(Math.random() * p.luk);
-                let dmgTaken = Math.max(2, 10 - Math.floor(p.vit/2));
+            const useItem = (index) => {
+                const itemId = state.player.inventory[index];
+                const item = ITEMS[itemId];
                 
-                p.hp -= dmgTaken;
-                p.exp += 40;
-                p.gold += 15;
-                p.materials += 1;
-                
-                logMsg(`Batalha: Você derrotou um Goblin! Causou ${dmgDealt} dmg e recebeu ${dmgTaken} dmg.`, "#ff4444");
-                logMsg(`Ganhou 40 EXP, 15 Gold e 1 Material de Forja.`, "yellow");
-            } else {
-                logMsg("Você explorou e encontrou uma fonte sagrada. HP restaurado.", "lightgreen");
-                p.hp = p.maxHp;
-            }
-            checkLevelUp();
-            updateUI();
-        }
-
-        // --- FERREIRO (CRAFTING) ---
-        function visitBlacksmith() {
-            const costGold = (p.weaponLvl + 1) * 30;
-            const costMat = (p.weaponLvl + 1) * 2;
-
-            if(p.gold >= costGold && p.materials >= costMat) {
-                p.gold -= costGold;
-                p.materials -= costMat;
-                p.weaponLvl++;
-                logMsg(`Ferreiro: "Sua arma agora é +${p.weaponLvl}!"`, "orange");
-                p.str += 2;
-            } else {
-                logMsg(`Ferreiro: "Você precisa de ${costGold} gold e ${costMat} materiais para o upgrade."`, "#aaa");
-            }
-            updateUI();
-        }
-
-        // --- SISTEMA DE TRADE E MULTIPLAYER (SIMULADO) ---
-        function openTrade() {
-            logMsg("Procurando jogadores para trade...", "cyan");
-            setTimeout(() => {
-                const luck = Math.random();
-                if(luck > 0.5) {
-                    p.gold += 50;
-                    logMsg("Trade Realizado: Você vendeu itens raros por 50 Gold!", "gold");
-                } else {
-                    logMsg("Nenhum comprador interessado no momento.");
+                if(item.type === 'weapon') state.player.equipped.weapon = itemId;
+                if(item.type === 'armor') state.player.equipped.armor = itemId;
+                if(item.type === 'consumable') {
+                    state.player.hp = Math.min(state.player.maxHp, state.player.hp + item.heal);
+                    state.player.inventory.splice(index, 1);
                 }
+                log(`Você interagiu com ${item.name}.`);
                 updateUI();
-            }, 1000);
-        }
+            };
 
-        function simulateMultiplayer() {
-            const users = ["Lord_Dragon", "X_Mago_X", "Beholder99", "Sir_Kael"];
-            const msgs = ["Alguém quer ir Dungeon?", "Vendo Espada Longa +3!", "Onde fica o ferreiro?", "O Mago é muito apelão kkk"];
-            const rUser = users[Math.floor(Math.random()*users.length)];
-            const rMsg = msgs[Math.floor(Math.random()*msgs.length)];
-            chatMsg(rUser, rMsg);
-        }
+            const checkLevelUp = () => {
+                const needed = state.config.expBase * Math.pow(state.config.expGrowth, state.player.lvl - 1);
+                if(state.player.exp >= needed) {
+                    state.player.lvl++;
+                    state.player.exp = 0;
+                    state.player.maxHp += 20;
+                    state.player.hp = state.player.maxHp;
+                    state.player.baseAtk += 3;
+                    log(`LEVEL UP! Você alcançou o nível ${state.player.lvl}`, "cyan");
+                }
+            };
 
-        // --- LÓGICA DE PROGRESSÃO ---
-        function checkLevelUp() {
-            if(p.exp >= p.nextLvl) {
-                p.lvl++;
-                p.exp = 0;
-                p.nextLvl = Math.floor(p.nextLvl * 1.5);
-                p.maxHp += 20;
-                p.hp = p.maxHp;
-                p.str += 2; p.agi += 1; p.int += 1;
-                logMsg(`LEVEL UP! Você agora está no nível ${p.lvl}!`, "cyan");
-            }
-        }
+            const log = (msg, color = "#888") => {
+                const l = document.getElementById('log');
+                l.innerHTML = `<div class="log-entry" style="color:${color}">[${new Date().toLocaleTimeString()}] ${msg}</div>` + l.innerHTML;
+            };
 
-        function rest() {
-            p.hp = p.maxHp;
-            logMsg("Você descansou na estalagem. HP Total!", "lightgreen");
-            updateUI();
-        }
+            // --- PERSISTÊNCIA ---
+            const save = () => {
+                localStorage.setItem('eldoria_pro_save', JSON.stringify(state.player));
+                log("Sincronizando com a nuvem... Sucesso!", "var(--gold)");
+            };
 
-        function updateUI() {
-            document.getElementById('player-name-display').innerText = p.name;
-            document.getElementById('class-display').innerText = p.class;
-            document.getElementById('lvl-val').innerText = p.lvl;
-            document.getElementById('gold-val').innerText = p.gold;
-            document.getElementById('hp-val').innerText = `${p.hp}/${p.maxHp}`;
-            document.getElementById('equip-val').innerText = `Espada de Aço +${p.weaponLvl}`;
-            document.getElementById('attr-list').innerText = `STR: ${p.str} | AGI: ${p.agi} | INT: ${p.int} | MAT: ${p.materials}`;
-            
-            const hpPerc = (p.hp / p.maxHp) * 100;
-            document.getElementById('hp-fill').style.width = hpPerc + "%";
-            
-            const expPerc = (p.exp / p.nextLvl) * 100;
-            document.getElementById('exp-fill').style.width = expPerc + "%";
-        }
+            const start = () => {
+                const name = document.getElementById('p-name').value || "Herói";
+                const saved = localStorage.getItem('eldoria_pro_save');
+                if(saved) {
+                    state.player = JSON.parse(saved);
+                    log("Crônicas carregadas.");
+                } else {
+                    state.player.name = name;
+                }
+                document.getElementById('overlay').style.display = 'none';
+                updateUI();
+            };
+
+            return { start, action, save };
+        })();
     </script>
 </body>
 </html>
