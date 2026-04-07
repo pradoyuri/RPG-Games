@@ -2,38 +2,307 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Eldoria Online - RPG Engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELDORIA ONLINE | Aincrad Protocol</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Quicksand:wght@300;500&display=swap');
+
         :root {
-            --medieval-gold: #d4af37;
-            --medieval-dark: #1a1a1a;
-            --warrior-red: #8b0000;
+            --sao-blue: #00aeef;
+            --sao-orange: #f7941d;
+            --hp-green: #2ecc71;
+            --hp-red: #e74c3c;
+            --panel-glass: rgba(0, 0, 0, 0.85);
+            --border-glow: 1px solid rgba(0, 174, 239, 0.5);
         }
+
+        * { box-sizing: border-box; user-select: none; }
 
         body {
-            background-color: #050505;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            background: #050505; color: white;
+            font-family: 'Quicksand', sans-serif;
+            margin: 0; overflow: hidden;
+            display: flex; justify-content: center; align-items: center; height: 100vh;
         }
 
-        #game-container {
-            width: 900px;
-            height: 600px;
-            background: #222;
-            border: 4px solid var(--medieval-gold);
-            display: grid;
-            grid-template-columns: 250px 1fr 200px;
-            grid-template-rows: 60px 1fr 150px;
-            gap: 5px;
-            padding: 10px;
-            position: relative;
+        /* UI Estilo SAO - Limpa e Transparente */
+        #link-start-screen {
+            position: fixed; inset: 0; background: radial-gradient(circle, #111, #000);
+            z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
+
+        .hud-container {
+            width: 1200px; height: 800px;
+            display: grid; grid-template-columns: 320px 1fr 300px; grid-template-rows: auto 1fr auto;
+            gap: 15px; padding: 20px; position: relative;
+        }
+
+        /* HP Bar Estilo SAO (Inclinada) */
+        .player-vitals {
+            grid-column: 1; background: var(--panel-glass); padding: 15px;
+            clip-path: polygon(0 0, 100% 0, 90% 100%, 0% 100%);
+            border-left: 5px solid var(--sao-blue);
+        }
+
+        .hp-bar-outer {
+            width: 100%; height: 25px; background: #333; margin: 10px 0;
+            transform: skewX(-20deg); border: 1px solid #000; overflow: hidden;
+        }
+
+        #hp-fill {
+            height: 100%; background: var(--hp-green); width: 100%;
+            transition: width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.5s;
+        }
+
+        /* Main Viewport */
+        .world-view {
+            grid-column: 2; background: url('https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1000&q=80');
+            background-size: cover; border: var(--border-glow); position: relative;
+            box-shadow: inset 0 0 100px #000;
+        }
+
+        .combat-log {
+            position: absolute; bottom: 0; width: 100%; height: 150px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            padding: 15px; font-family: 'Consolas', monospace; font-size: 13px;
+            overflow-y: auto; color: #00aeef;
+        }
+
+        /* Inventory & Skills */
+        .right-panel { grid-row: 1 / 4; background: var(--panel-glass); border-left: var(--border-glow); padding: 20px; }
+
+        .item-slot {
+            width: 60px; height: 60px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(0,174,239,0.2); margin-bottom: 5px;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
+        }
+        .item-slot:hover { border-color: var(--sao-blue); background: rgba(0,174,239,0.1); }
+
+        .btn-sao {
+            width: 100%; padding: 12px; background: none; border: 1px solid var(--sao-blue);
+            color: var(--sao-blue); font-family: 'Orbitron'; font-size: 10px;
+            margin-bottom: 10px; cursor: pointer; transition: 0.3s;
+        }
+        .btn-sao:hover { background: var(--sao-blue); color: #000; box-shadow: 0 0 15px var(--sao-blue); }
+
+        /* Animações de Dano */
+        .shake { animation: shake 0.4s; }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px); }
+            20% { transform: translate(-3px, 0); }
+            40% { transform: translate(3px, 2px); }
+            100% { transform: translate(0, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="link-start-screen">
+        <h1 style="font-family: 'Orbitron'; color: var(--sao-blue); letter-spacing: 10px;">LINK START</h1>
+        <input type="text" id="player-name" placeholder="IDENTIFICADOR" style="background:none; border:none; border-bottom: 2px solid white; color:white; text-align:center; outline:none; font-size: 1.5em; margin: 20px;">
+        <button class="btn-sao" style="width: 200px;" onclick="Engine.boot()">LOGIN</button>
+    </div>
+
+    <div class="hud-container">
+        <section class="player-vitals">
+            <div id="ui-name" style="font-family: 'Orbitron'; font-size: 1.2em;">PLAYER_NAME</div>
+            <div style="font-size: 0.8em; opacity: 0.7;" id="ui-class">SOLO_PLAYER</div>
+            <div class="hp-bar-outer">
+                <div id="hp-fill"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8em;">
+                <span>LVL <b id="ui-lvl">1</b></span>
+                <span id="ui-hp-text">100/100</span>
+            </div>
+        </aside>
+
+        <main class="world-view" id="world-frame">
+            <div style="padding: 20px;">
+                <h3 id="location-title" style="color: var(--sao-blue);">FLOR DE LÓTUS - ANDAR 1</h3>
+            </div>
+            
+            <div class="combat-log" id="log">
+                [SYSTEM]: Protocolo inicializado. Bem-vindo ao Sistema Eldoria.
+            </div>
+        </main>
+
+        <aside class="right-panel">
+            <h4 style="font-family: 'Orbitron'; color: var(--sao-blue); border-bottom: 1px solid #333;">SKILLS & ITEMS</h4>
+            <div id="inventory-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 20px;">
+                </div>
+            
+            <div class="actions">
+                <button class="btn-sao" onclick="Engine.executeAction('explore')">EXPLORAR ÁREA</button>
+                <button class="btn-sao" onclick="Engine.executeAction('rest')">ESTALAGEM (REGEN)</button>
+                <button class="btn-sao" onclick="Engine.executeAction('blacksmith')">FERREIRO LISBETH</button>
+                <button class="btn-sao" onclick="Engine.save()">SYNC DATA</button>
+            </div>
+
+            <div id="stats-detail" style="font-size: 0.8em; margin-top: 20px; color: #888; border-top: 1px solid #333; padding-top: 10px;">
+                STR: <span id="st-str">0</span> | AGI: <span id="st-agi">0</span> | INT: <span id="st-int">0</span><br>
+                CASH: <span id="st-gold" style="color: var(--gold);">0</span> Col
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        /**
+         * ENGINE PROFISSIONAL v4.0
+         * Foco: Real-time, POO e Imersão
+         */
+        
+        class Player {
+            constructor(name, charClass) {
+                this.name = name;
+                this.class = charClass;
+                this.lvl = 1;
+                this.hp = 100;
+                this.maxHp = 100;
+                this.exp = 0;
+                this.gold = 100;
+                this.stats = { str: 10, agi: 10, int: 10 };
+                this.inventory = [];
+                this.weaponLvl = 0;
+            }
+
+            regenerate() {
+                if (this.hp < this.maxHp && this.hp > 0) {
+                    this.hp = Math.min(this.maxHp, this.hp + (this.maxHp * 0.01)); // 1% regen por tick
+                }
+            }
+        }
+
+        const Engine = {
+            player: null,
+            isBattle: false,
+            
+            boot() {
+                const name = document.getElementById('player-name').value;
+                if (!name) return;
+
+                // Tentar carregar save
+                const rawSave = localStorage.getItem(`sao_save_${name}`);
+                if (rawSave) {
+                    this.player = Object.assign(new Player(), JSON.parse(rawSave));
+                    this.log("Dados sincronizados com o Servidor Cardinal.", "var(--sao-blue)");
+                } else {
+                    this.player = new Player(name, "Solo Player");
+                    this.log("Novo registro de usuário criado.", "var(--sao-orange)");
+                }
+
+                document.getElementById('link-start-screen').style.display = 'none';
+                this.startHeartbeat();
+                this.updateUI();
+            },
+
+            // O Coração do Jogo (Roda em tempo real)
+            startHeartbeat() {
+                setInterval(() => {
+                    this.player.regenerate();
+                    this.updateUI();
+                }, 3000); // Ticker de 3 segundos
+            },
+
+            executeAction(action) {
+                const frame = document.getElementById('world-frame');
+                
+                if (action === 'explore') {
+                    this.isBattle = true;
+                    frame.classList.add('shake');
+                    setTimeout(() => frame.classList.remove('shake'), 400);
+                    
+                    const monsterPower = this.player.lvl * 12;
+                    const dmgTaken = Math.max(5, monsterPower - (this.player.stats.agi / 2));
+                    const dmgDealt = this.player.stats.str + (this.player.weaponLvl * 5);
+
+                    this.player.hp -= dmgTaken;
+                    this.player.exp += 40;
+                    this.player.gold += 15;
+
+                    this.log(`Combate: Inimigo atingido (${dmgDealt} dmg). Dano recebido: ${dmgTaken}`, "#ff4d4d");
+                    
+                    if (this.player.hp <= 0) {
+                        this.log("FATAL ERROR: HP em Zero. Redirecionando...", "red");
+                        this.player.hp = 1; // Proteção contra morte definitiva neste protótipo
+                    }
+                    this.checkLevelUp();
+                }
+
+                if (action === 'rest') {
+                    if (this.player.gold < 20) return this.log("Dinheiro insuficiente para a estalagem.");
+                    this.player.gold -= 20;
+                    this.player.hp = this.player.maxHp;
+                    this.log("Descanso concluído. Integridade restaurada.");
+                }
+
+                if (action === 'blacksmith') {
+                    const cost = (this.player.weaponLvl + 1) * 100;
+                    if (this.player.gold >= cost) {
+                        this.player.gold -= cost;
+                        this.player.weaponLvl++;
+                        this.player.stats.str += 5;
+                        this.log(`Sucesso! Espada reforçada para +${this.player.weaponLvl}`, "cyan");
+                    } else {
+                        this.log(`A ferreira Lisbeth exige ${cost} Col para este serviço.`);
+                    }
+                }
+
+                this.updateUI();
+            },
+
+            checkLevelUp() {
+                const nextLvlExp = this.player.lvl * 100;
+                if (this.player.exp >= nextLvlExp) {
+                    this.player.lvl++;
+                    this.player.exp = 0;
+                    this.player.maxHp += 50;
+                    this.player.hp = this.player.maxHp;
+                    this.player.stats.str += 3;
+                    this.player.stats.agi += 2;
+                    this.log(`LEVEL UP: Agora você é nível ${this.p.lvl}. Atributos sincronizados.`, "gold");
+                }
+            },
+
+            log(msg, color = "#fff") {
+                const logBox = document.getElementById('log');
+                const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                logBox.innerHTML = `<div><span style="color:rgba(255,255,255,0.3)">[${time}]</span> <span style="color:${color}">${msg}</span></div>` + logBox.innerHTML;
+            },
+
+            save() {
+                localStorage.setItem(`sao_save_${this.player.name}`, JSON.stringify(this.player));
+                this.log("Dados salvos com sucesso.", "var(--sao-blue)");
+            },
+
+            updateUI() {
+                if (!this.player) return;
+                
+                document.getElementById('ui-name').innerText = this.player.name.toUpperCase();
+                document.getElementById('ui-lvl').innerText = this.player.lvl;
+                document.getElementById('ui-hp-text').innerText = `${Math.floor(this.player.hp)} / ${this.player.maxHp}`;
+                document.getElementById('st-str').innerText = this.player.stats.str;
+                document.getElementById('st-agi').innerText = this.player.stats.agi;
+                document.getElementById('st-int').innerText = this.player.stats.int;
+                document.getElementById('st-gold').innerText = this.player.gold;
+
+                const hpFill = document.getElementById('hp-fill');
+                const perc = (this.player.hp / this.player.maxHp) * 100;
+                hpFill.style.width = perc + "%";
+
+                // Feedback visual de HP baixo
+                if (perc < 25) {
+                    hpFill.style.background = "var(--hp-red)";
+                    hpFill.style.boxShadow = "0 0 15px var(--hp-red)";
+                } else {
+                    hpFill.style.background = "var(--hp-green)";
+                    hpFill.style.boxShadow = "none";
+                }
+            }
+        };
+    </script>
+</body>
+</html>
 
         /* Lobby de Login */
         #login-screen {
