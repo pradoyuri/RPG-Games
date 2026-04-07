@@ -3,366 +3,500 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eldoria Online: GitHub Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;500&display=swap" rel="stylesheet">
+    <title>Aethelgard Chronicles | Estilo Retro Browser</title>
     <style>
+        /* --- Reset e Fontes Clássicas --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #1a150f; /* Fundo escuro texturizado (simulado) */
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36z8gAFWNgYGhgYmByYGBgYmACAC9bBgd9X94IAAAAAElFTkSuQmCC');
+            color: #d1c4a9; /* Cor de texto pergaminho */
+            font-family: Tahoma, Geneva, Verdana, sans-serif; /* Fontes padrão de browsers antigos */
+            font-size: 12px;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- Mixins de Estilo Teletofus (CSS Vars) --- */
         :root {
-            --gold: #c5a059; --gold-bright: #f0d58e;
-            --bg: #0a0a0c; --panel: #16161a; --border: #2d2d35;
-            --white: #e1e1e6; --red: #ff4d4d; --blue: #4d94ff;
-            --rarity-0: #9e9e9e; --rarity-1: #1eff00; --rarity-2: #0070dd;
+            --bg-panel: #312a20; /* Fundo caixas */
+            --bg-darker: #211c14; /* Fundo inputs/logs */
+            --border-light: #857356; /* Borda interna */
+            --border-dark: #524531;  /* Borda externa */
+            --gold-accent: #f5c542; /* Ouro Dofus */
+            --red-hp: #9c1c1c;
+            --blue-xp: #1c7c9c;
         }
 
-        * { box-sizing: border-box; }
-        body { 
-            background: var(--bg); color: var(--white); font-family: 'Inter', sans-serif;
-            margin: 0; display: flex; height: 100vh; overflow: hidden;
+        /* --- Container Principal (Janela do Jogo) --- */
+        #game-window {
+            width: 960px;
+            height: 640px;
+            background-color: var(--bg-panel);
+            border: 4px solid var(--border-dark);
+            outline: 2px solid var(--border-light); /* Simula borda dupla */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        /* Lobby / Auth Screen */
-        #lobby {
-            position: fixed; inset: 0; background: radial-gradient(circle, #1a1a20 0%, #050505 100%);
-            z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        /* --- Detalhes Decorativos de Canto (Opcional, mas dá o tom) --- */
+        #game-window::before, #game-window::after {
+            content: '';
+            position: absolute;
+            width: 20px; height: 20px;
+            background: var(--gold-accent);
+            border: 3px solid var(--border-dark);
+            z-index: 10;
+        }
+        #game-window::before { top: -5px; left: -5px; border-radius: 0 0 10px 0; }
+        #game-window::after { top: -5px; right: -5px; border-radius: 0 0 0 10px; }
+
+        /* =========================================
+           TELA DE LOGIN / LOBBY (Sobreposição)
+           ========================================= */
+        #login-screen {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(15, 12, 9, 0.95);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
         }
 
-        .lobby-box {
-            background: var(--panel); border: 2px solid var(--gold); padding: 40px;
-            width: 400px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,1);
+        .tofus-panel {
+            background-color: var(--bg-panel);
+            border: 3px solid var(--border-dark);
+            padding: 20px;
+            text-align: center;
+            min-width: 300px;
         }
 
-        /* Main Game Layout */
-        #game-interface {
-            display: grid; grid-template-columns: 300px 1fr 320px;
-            grid-template-rows: 70px 1fr 200px; width: 100%; height: 100%;
-            display: none; /* Ativado após login */
+        .game-title {
+            color: var(--gold-accent);
+            font-family: 'Georgia', serif;
+            font-size: 3em;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 20px;
         }
 
-        .panel { background: var(--panel); border: 1px solid var(--border); padding: 20px; overflow-y: auto; }
-
-        /* UI Elements */
-        .header { grid-column: 1 / 4; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--gold); padding: 0 30px; }
+        /* =========================================
+           INTERFACE PRINCIPAL DO JOGO
+           ========================================= */
         
-        .char-info { border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 15px; }
-        
-        .bar-outer { width: 100%; height: 10px; background: #000; border-radius: 5px; margin: 8px 0; overflow: hidden; }
-        .bar-inner { height: 100%; width: 0%; transition: width 0.4s ease; }
-
-        /* Combat & Action Area */
-        .world-view { 
-            grid-column: 2; display: flex; flex-direction: column; 
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://www.transparenttextures.com/patterns/dark-matter.png');
-            align-items: center; justify-content: center;
+        /* 1. Header (Banner Superior) */
+        header {
+            height: 40px;
+            background-color: var(--bg-darker);
+            border-bottom: 3px solid var(--border-dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
         }
 
-        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 80%; }
-
-        .btn {
-            background: transparent; border: 1px solid var(--gold); color: var(--gold);
-            padding: 15px; cursor: pointer; font-family: 'Cinzel'; font-weight: bold;
-            transition: 0.2s; text-transform: uppercase;
+        header h1 {
+            font-size: 14px;
+            color: var(--gold-accent);
+            text-transform: uppercase;
         }
-        .btn:hover:not(:disabled) { background: var(--gold); color: #000; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* Inventory & Trade */
-        .inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .slot { 
-            aspect-ratio: 1; background: #0a0a0a; border: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
-            cursor: pointer; position: relative;
+        /* 2. Área de Conteúdo Principal (Layout em Colunas) */
+        #main-container {
+            flex: 1;
+            display: flex;
+            padding: 10px;
+            gap: 10px;
+            overflow: hidden;
         }
-        .slot:hover { border-color: var(--gold-bright); }
-        .slot.equipped { outline: 2px solid var(--gold); }
 
-        /* Log */
-        .log-area { grid-column: 1 / 4; background: #050505; padding: 15px; font-family: monospace; font-size: 0.85rem; color: #888; overflow-y: auto; border-top: 2px solid var(--border); }
-        .log-entry { margin-bottom: 4px; border-left: 3px solid var(--border); padding-left: 10px; }
+        /* Painéis Laterais */
+        .sidebar {
+            width: 220px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-        /* Typography */
-        h1, h2, h3 { font-family: 'Cinzel', serif; margin: 0; color: var(--gold); }
-        .stat-line { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
+        /* Painel Central (Onde a ação acontece) */
+        #central-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Caixas de Conteúdo Genéricas */
+        .content-box {
+            background-color: var(--bg-darker);
+            border: 2px solid var(--border-dark);
+            padding: 8px;
+        }
+
+        .box-header {
+            background-color: #4a4131;
+            border: 1px solid var(--border-light);
+            color: #fff;
+            padding: 3px 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+            margin-bottom: 5px;
+            display: flex; justify-content: space-between;
+        }
+
+        /* =========================================
+           ELEMENTOS ESPECÍFICOS DE UI
+           ========================================= */
+
+        /* Barras de Status (HP/XP) */
+        .status-container { margin-bottom: 8px; }
+        .bar-label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px; }
+        .bar-outer {
+            height: 12px;
+            background-color: #111;
+            border: 1px solid #000;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+        .bar-inner { height: 100%; transition: width 0.3s ease; }
+        #hp-bar { background-color: var(--red-hp); width: 100%; }
+        #xp-bar { background-color: var(--blue-xp); width: 0%; }
+
+        /* Stats List */
+        .stats-list ul { list-style: none; }
+        .stats-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid #332b21;
+        }
+        .stat-val { color: #fff; font-weight: bold; }
+        .gold-val { color: var(--gold-accent); }
+
+        /* Log de Eventos */
+        #game-log {
+            flex: 1;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #a0a0a0;
+            padding-right: 5px;
+        }
+        #game-log p { margin-bottom: 4px; line-height: 1.4; border-bottom: 1px solid #2a2a2a; }
+        #game-log b { color: #fff; }
+
+        /* Botões Estilo Teletofus */
+        .tofus-btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(to bottom, #a38f6d 0%, #736145 100%);
+            border: 2px solid #000;
+            color: #fff;
+            padding: 6px;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+            cursor: pointer;
+            text-shadow: 1px 1px 0 #000;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+        .tofus-btn:hover {
+            background: linear-gradient(to bottom, #b8a37e 0%, #857356 100%);
+            outline: 1px solid var(--gold-accent);
+        }
+        .tofus-btn:active {
+            background: linear-gradient(to bottom, #736145 0%, #a38f6d 100%);
+        }
+        .tofus-btn.btn-save { background: linear-gradient(to bottom, #45734a 0%, #294d2c 100%); }
+
+        /* Inputs */
+        .tofus-input {
+            background-color: var(--bg-darker);
+            border: 2px solid var(--border-dark);
+            color: var(--gold-accent);
+            padding: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        /* Modais (Ferreiro/Trade) integrados */
+        .game-overlay-panel {
+            display: none; /* Escondido por padrão */
+            position: absolute;
+            top: 50px; left: 240px; right: 240px; bottom: 80px;
+            background-color: var(--bg-panel);
+            border: 3px solid var(--gold-accent);
+            z-index: 20;
+            padding: 15px;
+        }
+
+        /* Scrollbar Clássica */
+        #game-log::-webkit-scrollbar { width: 6px; }
+        #game-log::-webkit-scrollbar-track { background: var(--bg-darker); }
+        #game-log::-webkit-scrollbar-thumb { background: var(--border-light); }
+
     </style>
 </head>
 <body>
 
-    <div id="lobby">
-        <div class="lobby-box">
-            <h1>ELDORIA</h1>
-            <p style="color: #666; font-size: 0.8rem; margin-bottom: 20px;">RPG ENGINE v1.0 PRO</p>
-            <input type="text" id="username" placeholder="Nome do Herói" style="width: 100%; padding: 12px; background: #000; border: 1px solid var(--border); color: #fff; margin-bottom: 10px; text-align: center;">
-            <select id="class-select" style="width: 100%; padding: 12px; background: #000; border: 1px solid var(--border); color: #fff; margin-bottom: 20px;">
-                <option value="Guerreiro">Guerreiro (Força)</option>
-                <option value="Arqueiro">Arqueiro (Agilidade)</option>
-                <option value="Mago">Mago (Inteligência)</option>
-                <option value="Healer">Healer (Vigor)</option>
-            </select>
-            <button class="btn" style="width: 100%;" onclick="Engine.init()">Entrar no Reino</button>
-            <p style="font-size: 0.7rem; color: #444; margin-top: 15px;">Seu progresso é salvo automaticamente neste navegador.</p>
+<div id="game-window">
+    
+    <div id="login-screen">
+        <div class="tofus-panel">
+            <h1 class="game-title">Aethelgard</h1>
+            <p style="margin-bottom: 15px;">Bem-vindo, aventureiro.</p>
+            <input type="text" id="username" class="tofus-input" placeholder="Nome do Personagem" maxlength="12">
+            <button class="tofus-btn" onclick="Game.login()">Jogar</button>
+            <p style="font-size: 10px; color: #666; margin-top: 10px;">v0.1 Alpha - LocalSave</p>
         </div>
     </div>
 
-    <div id="game-interface">
-        <header class="header">
-            <h2 id="ui-name">---</h2>
-            <div style="display: flex; gap: 40px;">
-                <span>OURO: <b id="ui-gold" style="color: var(--gold);">0</b></span>
-                <span>MATERIAIS: <b id="ui-mats" style="color: var(--blue);">0</b></span>
-            </div>
-            <button class="btn" style="padding: 5px 15px; font-size: 0.7rem;" onclick="Engine.save()">Salvar Agora</button>
-        </header>
+    <header>
+        <h1>Aethelgard Chronicles</h1>
+        <div style="font-size: 11px;">Server: <span style="color: lime;">Online</span></div>
+    </header>
 
-        <aside class="panel">
-            <div class="char-info">
-                <div class="stat-line"><span>Nível</span><span id="ui-lvl">1</span></div>
-                <div class="bar-outer"><div id="ui-exp-bar" class="bar-inner" style="background: var(--blue);"></div></div>
+    <div id="main-container">
+        
+        <aside class="sidebar">
+            <div class="content-box stats-list">
+                <div class="box-header"><span>Personagem</span></div>
+                <p style="text-align: center; font-weight: bold; color: #fff; margin-bottom: 5px;" id="char-name">Herói</p>
                 
-                <div class="stat-line"><span>Vitalidade</span><span id="ui-hp-txt">0/0</span></div>
-                <div class="bar-outer"><div id="ui-hp-bar" class="bar-inner" style="background: var(--red);"></div></div>
+                <div class="status-container">
+                    <div class="bar-label"><span>HP</span> <span id="char-hp-txt">100/100</span></div>
+                    <div class="bar-outer"><div id="hp-bar" class="bar-inner"></div></div>
+                </div>
+
+                <div class="status-container">
+                    <div class="bar-label"><span>XP (Nível <span id="char-lvl">1</span>)</span> <span id="char-xp-txt">0%</span></div>
+                    <div class="bar-outer"><div id="xp-bar" class="bar-inner"></div></div>
+                </div>
+
+                <ul>
+                    <li><span>Ataque:</span> <span class="stat-val" id="stat-atk">10</span></li>
+                    <li><span>Arma:</span> <span class="stat-val" id="stat-weapon">+0</span></li>
+                    <li><span>Ouro:</span> <span class="stat-val gold-val" id="char-gold">0</span></li>
+                </ul>
             </div>
 
-            <h3>Atributos</h3>
-            <div class="stat-line"><span>Ataque</span><b id="ui-atk">0</b></div>
-            <div class="stat-line"><span>Defesa</span><b id="ui-def">0</b></div>
-            <div class="stat-line"><span>Sorte</span><b id="ui-luk">0</b></div>
-
-            <h3 style="margin-top: 20px;">Equipamento</h3>
-            <div id="ui-equip-weapon" style="font-size: 0.8rem; color: #888;">Arma: Nenhuma</div>
-            <div id="ui-equip-armor" style="font-size: 0.8rem; color: #888;">Armadura: Nenhuma</div>
+            <div class="content-box" style="flex: 1;">
+                <div class="box-header"><span>Inventário</span> <span>(0/20)</span></div>
+                <div style="color: #666; text-align: center; margin-top: 20px;">Vazio</div>
+            </div>
         </aside>
 
-        <main class="world-view">
-            <h1 id="ui-location" style="margin-bottom: 40px; letter-spacing: 5px;">VILAREJO</h1>
-            <div class="action-btns">
-                <button class="btn" onclick="Engine.combat()">Explorar Floresta</button>
-                <button class="btn" onclick="Engine.blacksmith()">Ferreiro (Upgrade)</button>
-                <button class="btn" onclick="Engine.trade()">Negociar (Trade)</button>
-                <button class="btn" onclick="Engine.rest()">Estalagem (Descanso)</button>
-            </div>
-        </main>
-
-        <section class="panel">
-            <h3>Mochila</h3>
-            <div class="inv-grid" id="ui-inventory">
+        <section id="central-area">
+            <div class="content-box" style="flex: 1; display: flex; flex-direction: column;">
+                <div class="box-header"><span>Log de Eventos</span></div>
+                <div id="game-log">
+                    <p>-- Aguardando conexão com o Reino --</p>
                 </div>
-            <div id="ui-item-desc" style="margin-top: 20px; font-size: 0.8rem; color: #666; font-style: italic;">
-                Toque em um item para usar ou equipar.
             </div>
         </section>
 
-        <div class="log-area" id="ui-log">
-            <div class="log-entry">Bem-vindo a Eldoria. Sua jornada começa aqui.</div>
+        <aside class="sidebar">
+            <div class="content-box">
+                <div class="box-header"><span>Ações</span></div>
+                <button class="tofus-btn" onclick="Game.explore()">Explorar Floresta</button>
+                <button class="tofus-btn" onclick="Game.togglePanel('blacksmith-panel')">Visitar Ferreiro</button>
+                <button class="tofus-btn" onclick="Game.togglePanel('trade-panel')">Mercado (Trade)</button>
+            </div>
+
+            <div class="content-box" style="margin-top: auto;">
+                <div class="box-header"><span>Sistema</span></div>
+                <button class="tofus-btn btn-save" onclick="Game.saveData()">Salvar Jogo</button>
+            </div>
+        </aside>
+    </div>
+
+    <div id="blacksmith-panel" class="game-overlay-panel stats-list">
+        <div class="box-header"><span>Ferreiro Real</span> <span style="cursor:pointer;" onclick="Game.closeAllPanels()">[X]</span></div>
+        <div style="text-align:center; padding: 20px;">
+            <p style="font-size: 14px; color: #fff; margin-bottom: 10px;">Melhorar Equipamento</p>
+            <p>Sua arma atual: <b class="stat-val" id="forge-weapon-lvl">+0</b></p>
+            <p style="margin-bottom: 15px;">Custo da melhoria: <b class="gold-val">50 Ouro</b></p>
+            <button class="tofus-btn" style="width: auto; padding: 6px 20px;" onclick="Game.upgradeWeapon()">Melhorar (+2 Atk)</button>
         </div>
     </div>
 
-    <script>
-        /**
-         * ELDORIA ENGINE v1.0 PRO
-         * Arquitetura Singleton baseada em estados para Single-Player.
-         */
-        const Engine = (() => {
-            // -- BANCO DE DADOS INTERNO --
-            const DATABASE = {
-                items: {
-                    'W1': { name: 'Adaga de Ferro', atk: 5, icon: '🗡️', type: 'weapon', rarity: 0 },
-                    'W2': { name: 'Espada Longa', atk: 12, icon: '⚔️', type: 'weapon', rarity: 1 },
-                    'A1': { name: 'Trapos', def: 2, icon: '👕', type: 'armor', rarity: 0 },
-                    'A2': { name: 'Cota de Malha', def: 10, icon: '🛡️', type: 'armor', rarity: 1 },
-                    'P1': { name: 'Poção', heal: 40, icon: '🧪', type: 'use', rarity: 0 }
-                },
-                monsters: [
-                    { name: 'Slime', hp: 30, atk: 5, xp: 20, gold: 5 },
-                    { name: 'Goblin', hp: 60, atk: 12, xp: 45, gold: 15 },
-                    { name: 'Orc', hp: 120, atk: 25, xp: 110, gold: 40 }
-                ]
-            };
+    <div id="trade-panel" class="game-overlay-panel">
+        <div class="box-header"><span>Mercado de Aethelgard</span> <span style="cursor:pointer;" onclick="Game.closeAllPanels()">[X]</span></div>
+        <div style="text-align:center; padding: 20px;">
+            <p>Atualmente não há jogadores online para trade.</p>
+            <p style="margin-top: 10px; color: #666;">(NPC) Vender itens inúteis?</p>
+            <button class="tofus-btn" style="width: auto; margin-top: 10px;" onclick="Game.sellLoot()">Vender Tudo (+20g)</button>
+        </div>
+    </div>
 
-            // -- ESTADO DO JOGADOR --
-            let p = {
-                name: '', class: '', lvl: 1, exp: 0, nextLvl: 100,
-                hp: 100, maxHp: 100, gold: 50, mats: 0,
-                baseAtk: 10, baseDef: 5, baseLuk: 5,
-                inv: ['P1'], equipped: { weapon: null, armor: null }
-            };
+</div>
 
-            // -- CORE LOGIC --
-            const init = () => {
-                const name = document.getElementById('username').value;
-                if(!name) return alert("Insira o nome do herói.");
+<script>
+    const Game = {
+        // Estado do Jogador
+        player: {
+            name: "",
+            lvl: 1, exp: 0, maxExp: 100,
+            hp: 100, maxHp: 100,
+            gold: 0, atk: 10,
+            weaponLvl: 0
+        },
+
+        // Inicialização no Login
+        login() {
+            const nameInput = document.getElementById('username').value;
+            if(!nameInput || nameInput.length < 3) return alert("Nome inválido (mínimo 3 caracteres).");
+            
+            this.player.name = nameInput;
+            this.loadData(); // Tenta carregar save existente
+            document.getElementById('login-screen').style.display = 'none';
+            
+            // Limpa o log e introduz o jogo
+            const logDiv = document.getElementById('game-log');
+            logDiv.innerHTML = "";
+            this.log(`<b>Conexão estabelecida.</b> Bem-vindo, ${this.player.name}.`);
+            this.updateUI();
+        },
+
+        // Atualização da Interface (CSS Bars e Textos)
+        updateUI() {
+            // Textos básicos
+            document.getElementById('char-name').innerText = this.player.name;
+            document.getElementById('char-lvl').innerText = this.player.lvl;
+            document.getElementById('char-hp-txt').innerText = `${this.player.hp}/${this.player.maxHp}`;
+            document.getElementById('char-gold').innerText = this.player.gold;
+            document.getElementById('stat-atk').innerText = this.player.atk;
+            document.getElementById('stat-weapon').innerText = `+${this.player.weaponLvl}`;
+            document.getElementById('forge-weapon-lvl').innerText = `+${this.player.weaponLvl}`;
+
+            // Cálculo e atualização das barras visuais
+            const hpPct = (this.player.hp / this.player.maxHp) * 100;
+            document.getElementById('hp-bar').style.width = `${hpPct}%`;
+
+            const xpPct = (this.player.exp / this.player.maxExp) * 100;
+            document.getElementById('xp-bar').style.width = `${xpPct}%`;
+            document.getElementById('char-xp-txt').innerText = `${Math.floor(xpPct)}%`;
+        },
+
+        // Sistema de Log (Rolagem Automática)
+        log(msg) {
+            const logDiv = document.getElementById('game-log');
+            const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            logDiv.innerHTML += `<p>[${time}] ${msg}</p>`;
+            logDiv.scrollTop = logDiv.scrollHeight; // Auto-scroll para baixo
+        },
+
+        // Mecânica: Explorar
+        explore() {
+            this.closeAllPanels(); // Fecha janelas abertas ao agir
+            
+            if(this.player.hp <= 10) {
+                this.log(`<b style="color: #ff4500;">Você está muito fraco para explorar! Descanse.</b>`);
+                this.player.hp = Math.min(this.player.maxHp, this.player.hp + 5); // Regeneração passiva simulada
+                this.updateUI();
+                return;
+            }
+
+            const event = Math.random();
+            if (event > 0.35) { // 65% chance de combate
+                const monsterAtk = Math.floor(Math.random() * 8) + 2;
+                const expGain = Math.floor(Math.random() * 10) + 15;
+                const goldGain = Math.floor(Math.random() * 5) + 10;
                 
-                const saved = localStorage.getItem(`eldoria_save_${name}`);
-                if(saved) {
-                    p = JSON.parse(saved);
-                    log("Crônicas carregadas do LocalStorage.");
-                } else {
-                    p.name = name;
-                    p.class = document.getElementById('class-select').value;
-                    applyClassBonus();
-                    log(`Nova lenda iniciada: ${p.name}, o ${p.class}.`);
-                }
+                // Aplica dano mitigado levemente pelo nível da arma (simplificado)
+                const finalDamage = Math.max(1, monsterAtk - this.player.weaponLvl);
 
-                document.getElementById('lobby').style.display = 'none';
-                document.getElementById('game-interface').style.display = 'grid';
-                refreshUI();
-            };
-
-            const applyClassBonus = () => {
-                if(p.class === 'Guerreiro') { p.baseAtk += 5; p.maxHp += 50; }
-                if(p.class === 'Mago') { p.baseAtk += 15; p.maxHp -= 20; }
-                p.hp = p.maxHp;
-            };
-
-            const getStats = () => {
-                let atk = p.baseAtk + (p.equipped.weapon ? DATABASE.items[p.equipped.weapon].atk : 0);
-                let def = p.baseDef + (p.equipped.armor ? DATABASE.items[p.equipped.armor].def : 0);
-                return { atk, def };
-            };
-
-            // -- ACTIONS --
-            const combat = () => {
-                if(p.hp <= 15) return log("Você está exausto demais para lutar!", "var(--red)");
+                this.player.hp -= finalDamage;
+                this.player.exp += expGain;
+                this.player.gold += goldGain;
                 
-                const monster = DATABASE.monsters[Math.floor(Math.random() * Math.min(p.lvl, 3))];
-                const stats = getStats();
+                this.log(`Combate: Você derrotou um <span style="color: #f77;">Chafer</span>. Ganhou ${expGain} XP, ${goldGain}g. Perdeu ${finalDamage} HP.`);
+            } else {
+                this.log("Você explorou a borda da floresta, mas nada encontrou.");
+                // Pequena cura ao não encontrar monstros
+                this.player.hp = Math.min(this.player.maxHp, this.player.hp + 2);
+            }
+            
+            this.checkLevelUp();
+            this.updateUI();
+        },
+
+        // Mecânica: Level Up
+        checkLevelUp() {
+            if (this.player.exp >= this.player.maxExp) {
+                this.player.lvl++;
+                this.player.exp = this.player.exp - this.player.maxExp; // Carrega XP excedente
+                this.player.maxExp = Math.floor(this.player.maxExp * 1.4); // Curva de XP
+                this.player.atk += 3;
+                this.player.maxHp += 15;
+                this.player.hp = this.player.maxHp; // Cura total no Level Up
                 
-                // Simulação de Turnos Simplificada
-                const damageDealt = stats.atk + Math.floor(Math.random() * p.baseLuk);
-                const damageTaken = Math.max(2, monster.atk - Math.floor(stats.def / 2));
+                this.log(`<b style="color: ${getComputedStyle(document.documentElement).getPropertyValue('--gold-accent')}">LEVEL UP! Você alcançou o nível ${this.player.lvl}. Seus atributos aumentaram e seu HP foi restaurado.</b>`);
+            }
+        },
 
-                p.hp -= damageTaken;
-                p.exp += monster.xp;
-                p.gold += monster.gold;
-                if(Math.random() > 0.7) p.mats += 1;
+        // Gestão de Painéis de UI (Ferreiro/Trade)
+        togglePanel(panelId) {
+            const panel = document.getElementById(panelId);
+            const isVisible = panel.style.display === 'block';
+            this.closeAllPanels(); // Fecha outros
+            if (!isVisible) panel.style.display = 'block';
+        },
 
-                log(`Batalha: Você derrotou um ${monster.name}!`);
-                log(`Recebeu ${damageTaken} de dano | Causou ${damageDealt} | +${monster.xp} XP.`, "var(--white)");
+        closeAllPanels() {
+            const panels = document.querySelectorAll('.game-overlay-panel');
+            panels.forEach(p => p.style.display = 'none');
+        },
 
-                // Chance de Drop
-                if(Math.random() > 0.85) {
-                    const keys = Object.keys(DATABASE.items);
-                    const drop = keys[Math.floor(Math.random() * keys.length)];
-                    if(p.inv.length < 12) {
-                        p.inv.push(drop);
-                        log(`DROP: Você encontrou ${DATABASE.items[drop].name}!`, "var(--gold)");
-                    }
-                }
+        // Mecânica: Ferreiro
+        upgradeWeapon() {
+            const cost = 50;
+            if (this.player.gold >= cost) {
+                this.player.gold -= cost;
+                this.player.weaponLvl++;
+                this.player.atk += 2;
+                this.log(`Ferreiro: Sucesso! Sua arma foi aprimorada para <b class="stat-val">+${this.player.weaponLvl}</b>.`);
+                this.updateUI();
+            } else {
+                this.log("<span style='color: #f77;'>Ouro insuficiente para o aprimoramento (Custo: 50g).</span>");
+            }
+        },
 
-                checkLevel();
-                refreshUI();
-            };
+        // Mecânica: Trade (Simplificado NPC)
+        sellLoot() {
+            this.player.gold += 20;
+            this.log("Mercado: Você vendeu recursos de monstros e obteve 20g.");
+            this.closeAllPanels();
+            this.updateUI();
+        },
 
-            const checkLevel = () => {
-                if(p.exp >= p.nextLvl) {
-                    p.lvl++;
-                    p.exp = 0;
-                    p.nextLvl = Math.floor(p.nextLvl * 1.6);
-                    p.maxHp += 20;
-                    p.hp = p.maxHp;
-                    p.baseAtk += 4;
-                    log(`LEVEL UP! Você agora é nível ${p.lvl}!`, "var(--blue)");
-                }
-            };
+        // Sistema de Save (LocalStorage)
+        saveData() {
+            localStorage.setItem(`aethelgard_save_${this.player.name}`, JSON.stringify(this.player));
+            this.log("<span style='color: lime;'>Progresso salvo com sucesso no navegador.</span>");
+        },
 
-            const rest = () => {
-                if(p.gold < 10) return log("Ouro insuficiente para descansar.");
-                p.gold -= 10;
-                p.hp = p.maxHp;
-                log("Você descansou na estalagem e recuperou todas as forças.");
-                refreshUI();
-            };
+        loadData() {
+            const saved = localStorage.getItem(`aethelgard_save_${this.player.name}`);
+            if (saved) {
+                this.player = JSON.parse(saved);
+                this.log("Dados de personagem carregados.");
+            }
+        }
+    };
+</script>
 
-            const trade = () => {
-                // Sistema de Trade (Venda de itens por ouro)
-                if(p.inv.length === 0) return log("Sua mochila está vazia.");
-                const index = p.inv.length - 1;
-                p.inv.splice(index, 1);
-                p.gold += 25;
-                log("Trade: Você vendeu um item por 25 moedas de ouro.");
-                refreshUI();
-            };
-
-            const blacksmith = () => {
-                const costGold = p.lvl * 30;
-                const costMats = p.lvl * 2;
-                if(p.gold >= costGold && p.mats >= costMats) {
-                    p.gold -= costGold;
-                    p.mats -= costMats;
-                    p.baseAtk += 5;
-                    log(`Ferreiro: Suas armas foram afiadas! +5 ATK.`, "var(--gold)");
-                } else {
-                    log(`O Ferreiro exige ${costGold}G e ${costMats} materiais.`);
-                }
-                refreshUI();
-            };
-
-            // -- UI & INVENTORY --
-            const refreshUI = () => {
-                const stats = getStats();
-                document.getElementById('ui-name').innerText = p.name + " (" + p.class + ")";
-                document.getElementById('ui-lvl').innerText = p.lvl;
-                document.getElementById('ui-gold').innerText = p.gold;
-                document.getElementById('ui-mats').innerText = p.mats;
-                document.getElementById('ui-atk').innerText = stats.atk;
-                document.getElementById('ui-def').innerText = stats.def;
-                document.getElementById('ui-luk').innerText = p.baseLuk;
-                document.getElementById('ui-hp-txt').innerText = `${Math.max(0, Math.floor(p.hp))}/${p.maxHp}`;
-                
-                document.getElementById('ui-hp-bar').style.width = (p.hp/p.maxHp*100) + "%";
-                document.getElementById('ui-exp-bar').style.width = (p.exp/p.nextLvl*100) + "%";
-                
-                document.getElementById('ui-equip-weapon').innerText = "Arma: " + (p.equipped.weapon ? DATABASE.items[p.equipped.weapon].name : "Nenhuma");
-                document.getElementById('ui-equip-armor').innerText = "Armadura: " + (p.equipped.armor ? DATABASE.items[p.equipped.armor].name : "Nenhuma");
-
-                renderInventory();
-                save(); // Auto-save em cada ação
-            };
-
-            const renderInventory = () => {
-                const grid = document.getElementById('ui-inventory');
-                grid.innerHTML = "";
-                for(let i=0; i<12; i++) {
-                    const slot = document.createElement('div');
-                    slot.className = 'slot';
-                    const itemId = p.inv[i];
-                    if(itemId) {
-                        const item = DATABASE.items[itemId];
-                        slot.innerHTML = item.icon;
-                        slot.style.color = `var(--rarity-${item.rarity})`;
-                        if(p.equipped.weapon === itemId || p.equipped.armor === itemId) slot.classList.add('equipped');
-                        slot.onclick = () => useItem(i);
-                    }
-                    grid.appendChild(slot);
-                }
-            };
-
-            const useItem = (index) => {
-                const id = p.inv[index];
-                const item = DATABASE.items[id];
-                if(item.type === 'use') {
-                    p.hp = Math.min(p.maxHp, p.hp + item.heal);
-                    p.inv.splice(index, 1);
-                } else if(item.type === 'weapon') {
-                    p.equipped.weapon = (p.equipped.weapon === id) ? null : id;
-                } else if(item.type === 'armor') {
-                    p.equipped.armor = (p.equipped.armor === id) ? null : id;
-                }
-                refreshUI();
-            };
-
-            const log = (msg, color = "#888") => {
-                const area = document.getElementById('ui-log');
-                const entry = document.createElement('div');
-                entry.className = 'log-entry';
-                entry.style.color = color;
-                entry.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
-                area.prepend(entry);
-            };
-
-            const save = () => {
-                localStorage.setItem(`eldoria_save_${p.name}`, JSON.stringify(p));
-            };
-
-            return { init, combat, rest, trade, blacksmith, save };
-        })();
-    </script>
 </body>
 </html>
