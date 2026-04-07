@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indexrpg.html</title>
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+                font-size: 16px;
+                line-height: 1.6;
+                color: #1e293b;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 40px 20px;
+                background: #ffffff;
+            }
+            .note-content {
+                width: 100%;
+            }
+            /* Headings */
+            h1 { font-size: 2em; font-weight: 700; margin: 0.67em 0; }
+            h2 { font-size: 1.5em; font-weight: 600; margin: 0.75em 0; }
+            h3 { font-size: 1.25em; font-weight: 600; margin: 0.75em 0; }
+            h4 { font-size: 1.1em; font-weight: 600; margin: 0.75em 0; }
+            h5 { font-size: 1em; font-weight: 600; margin: 0.75em 0; }
+            h6 { font-size: 0.9em; font-weight: 600; margin: 0.75em 0; }
+            
+            /* Paragraphs and text */
+            p { margin: 0 0 1em 0; }
+            
+            /* Lists */
+            ul, ol { 
+                margin: 0.5em 0 1em 0; 
+                padding-left: 1.5em;
+            }
+            li { margin: 0.25em 0; }
+            ul ul, ol ol, ul ol, ol ul {
+                margin: 0.25em 0;
+            }
+            
+            /* Blockquote */
+            blockquote {
+                margin: 1em 0;
+                padding: 12px 20px;
+                border-left: 4px solid #3b82f6;
+                background: #f8fafc;
+                font-style: italic;
+                color: #475569;
+            }
+            
+            /* Code */
+            pre {
+                background: #1e293b;
+                color: #e2e8f0;
+                padding: 16px;
+                border-radius: 8px;
+                overflow-x: auto;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-size: 14px;
+                line-height: 1.5;
+                margin: 1em 0;
+            }
+            code {
+                background: #f1f5f9;
+                color: #e11d48;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-size: 0.9em;
+            }
+            pre code {
+                background: transparent;
+                color: inherit;
+                padding: 0;
+            }
+            
+            /* Tables */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1em 0;
+            }
+            th, td {
+                border: 0.5px solid #000000;
+                padding: 10px 14px;
+                text-align: left;
+            }
+            th {
+                background: #f8fafc;
+                font-weight: 600;
+            }
+            
+            /* Images */
+            img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 4px;
+            }
+            
+            /* Image alignment */
+            img[data-align="left"], figure[data-align="left"] {
+                margin-left: 0;
+                margin-right: auto;
+            }
+            img[data-align="center"], figure[data-align="center"] {
+                margin-left: auto;
+                margin-right: auto;
+            }
+            img[data-align="right"], figure[data-align="right"] {
+                margin-left: auto;
+                margin-right: 0;
+            }
+            figure[data-align="center"] {
+                text-align: center;
+            }
+            figure[data-align="left"] {
+                text-align: left;
+            }
+            figure[data-align="right"] {
+                text-align: right;
+            }
+            
+            /* Image captions */
+            figcaption {
+                text-align: center !important;
+                font-size: 0.875rem;
+                color: #64748b;
+                font-style: italic;
+                margin-top: 0.5em;
+            }
+            
+            /* Links */
+            a {
+                color: #3b82f6;
+                text-decoration: underline;
+            }
+            a:hover {
+                color: #1d4ed8;
+            }
+            
+            /* Horizontal rule */
+            hr {
+                border: none;
+                border-top: 2px solid #e2e8f0;
+                margin: 2em 0;
+            }
+            
+            /* Text formatting - ensure inline styles take precedence */
+            [style] {
+                /* Inline styles preserved */
+            }
+            
+            /* Subscript and superscript */
+            sub { vertical-align: sub; font-size: 0.75em; }
+            sup { vertical-align: super; font-size: 0.75em; }
+            
+            /* Strikethrough */
+            s, strike, del { text-decoration: line-through; }
+            
+            /* Underline */
+            u, ins { text-decoration: underline; }
+            
+            /* Highlight/mark */
+            mark {
+                background-color: #fef08a;
+                padding: 0 2px;
+            }
+        </style>
+</head>
+<body>
+    <div class="note-content"><p>&lt;!DOCTYPE html&gt;</p><p>&lt;html lang="pt-br"&gt;</p><p>&lt;head&gt;</p><p>    &lt;meta charset="UTF-8"&gt;</p><p>    &lt;title&gt;Eldoria Online - RPG Engine&lt;/title&gt;</p><p>    &lt;style&gt;</p><p>        :root {</p><p>            --medieval-gold: #d4af37;</p><p>            --medieval-dark: #1a1a1a;</p><p>            --warrior-red: #8b0000;</p><p>        }</p><p><br></p><p>        body {</p><p>            background-color: #050505;</p><p>            color: #e0e0e0;</p><p>            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;</p><p>            margin: 0;</p><p>            display: flex;</p><p>            justify-content: center;</p><p>            align-items: center;</p><p>            height: 100vh;</p><p>            overflow: hidden;</p><p>        }</p><p><br></p><p>        #game-container {</p><p>            width: 900px;</p><p>            height: 600px;</p><p>            background: #222;</p><p>            border: 4px solid var(--medieval-gold);</p><p>            display: grid;</p><p>            grid-template-columns: 250px 1fr 200px;</p><p>            grid-template-rows: 60px 1fr 150px;</p><p>            gap: 5px;</p><p>            padding: 10px;</p><p>            position: relative;</p><p>        }</p><p><br></p><p>        /* Lobby de Login */</p><p>        #login-screen {</p><p>            position: absolute;</p><p>            top: 0; left: 0; width: 100%; height: 100%;</p><p>            background: rgba(0,0,0,0.9);</p><p>            z-index: 100;</p><p>            display: flex;</p><p>            flex-direction: column;</p><p>            justify-content: center;</p><p>            align-items: center;</p><p>        }</p><p><br></p><p>        .btn {</p><p>            background: var(--medieval-gold);</p><p>            color: black;</p><p>            border: none;</p><p>            padding: 10px 20px;</p><p>            cursor: pointer;</p><p>            font-weight: bold;</p><p>            margin-top: 10px;</p><p>        }</p><p><br></p><p>        /* Interface do Jogo */</p><p>        .panel { background: #333; border: 1px solid #555; padding: 10px; overflow-y: auto; }</p><p>        </p><p>        header { grid-column: 1 / 4; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--medieval-gold); }</p><p>        </p><p>        #stats-panel { grid-column: 1; display: flex; flex-direction: column; gap: 5px; }</p><p>        </p><p>        #main-display { grid-column: 2; display: flex; flex-direction: column; }</p><p>        </p><p>        #multiplayer-chat { grid-column: 3; font-size: 0.8em; }</p><p><br></p><p>        #action-log { flex-grow: 1; background: #111; padding: 10px; font-family: monospace; font-size: 0.9em; margin-bottom: 10px; border: 1px inset #000; }</p><p><br></p><p>        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }</p><p><br></p><p>        .class-icon { font-size: 2em; display: block; margin-bottom: 10px; }</p><p>        </p><p>        .progress-bar { width: 100%; background: #000; height: 10px; border-radius: 5px; margin: 5px 0; }</p><p>        .progress-fill { height: 100%; background: #4caf50; width: 0%; transition: width 0.3s; }</p><p>    &lt;/style&gt;</p><p>&lt;/head&gt;</p><p>&lt;body&gt;</p><p><br></p><p>    &lt;div id="game-container"&gt;</p><p>        &lt;div id="login-screen"&gt;</p><p>            &lt;h1&gt;ELDORIA ONLINE&lt;/h1&gt;</p><p>            &lt;input type="text" id="username" placeholder="Nome do Herói..."&gt;</p><p>            &lt;select id="class-select"&gt;</p><p>                &lt;option value="Guerreiro"&gt;Guerreiro (Força/Vigor)&lt;/option&gt;</p><p>                &lt;option value="Arqueiro"&gt;Arqueiro (Agilidade/Sorte)&lt;/option&gt;</p><p>                &lt;option value="Mago"&gt;Mago (Inteligência)&lt;/option&gt;</p><p>                &lt;option value="Healer"&gt;Healer (Vigor/Inteligência)&lt;/option&gt;</p><p>            &lt;/select&gt;</p><p>            &lt;button class="btn" onclick="startGame()"&gt;Entrar no Reino&lt;/button&gt;</p><p>        &lt;/div&gt;</p><p><br></p><p>        &lt;header class="panel"&gt;</p><p>            &lt;div id="player-name-display"&gt;Aventureiro&lt;/div&gt;</p><p>            &lt;div&gt;Ouro: &lt;span id="gold-val" style="color: gold;"&gt;0&lt;/span&gt;&lt;/div&gt;</p><p>            &lt;button onclick="saveGame()" style="font-size: 0.7em;"&gt;Salvar Conta&lt;/button&gt;</p><p>        &lt;/header&gt;</p><p><br></p><p>        &lt;aside id="stats-panel" class="panel"&gt;</p><p>            &lt;h3&gt;Status&lt;/h3&gt;</p><p>            &lt;div id="class-display" style="color: var(--medieval-gold);"&gt;Classe&lt;/div&gt;</p><p>            &lt;div&gt;Nível: &lt;span id="lvl-val"&gt;1&lt;/span&gt;&lt;/div&gt;</p><p>            &lt;div class="progress-bar"&gt;&lt;div id="exp-fill" class="progress-fill" style="background: #2196f3;"&gt;&lt;/div&gt;&lt;/div&gt;</p><p>            &lt;hr&gt;</p><p>            &lt;div&gt;HP: &lt;span id="hp-val"&gt;100/100&lt;/span&gt;&lt;/div&gt;</p><p>            &lt;div class="progress-bar"&gt;&lt;div id="hp-fill" class="progress-fill"&gt;&lt;/div&gt;&lt;/div&gt;</p><p>            &lt;div id="attr-list" style="font-size: 0.9em;"&gt;</p><p>                STR: 0 | AGI: 0 | INT: 0</p><p>            &lt;/div&gt;</p><p>            &lt;hr&gt;</p><p>            &lt;h4&gt;Equipamento&lt;/h4&gt;</p><p>            &lt;div id="equip-val" style="font-size: 0.8em; color: #aaa;"&gt;Trapos Velhos +0&lt;/div&gt;</p><p>        &lt;/aside&gt;</p><p><br></p><p>        &lt;main id="main-display" class="panel"&gt;</p><p>            &lt;div id="action-log"&gt;&lt;/div&gt;</p><p>            &lt;div class="controls"&gt;</p><p>                &lt;button class="btn" onclick="explore()"&gt;Explorar Floresta&lt;/button&gt;</p><p>                &lt;button class="btn" onclick="visitBlacksmith()"&gt;Ferreiro&lt;/button&gt;</p><p>                &lt;button class="btn" onclick="openTrade()"&gt;Trocar (Trade)&lt;/button&gt;</p><p>                &lt;button class="btn" onclick="rest()"&gt;Descansar (HP)&lt;/button&gt;</p><p>            &lt;/div&gt;</p><p>        &lt;/main&gt;</p><p><br></p><p>        &lt;section id="multiplayer-chat" class="panel"&gt;</p><p>            &lt;h4&gt;Lobby Global&lt;/h4&gt;</p><p>            &lt;div id="chat-content" style="height: 350px; overflow-y: auto;"&gt;&lt;/div&gt;</p><p>        &lt;/section&gt;</p><p>    &lt;/div&gt;</p><p><br></p><p>    &lt;script&gt;</p><p>        // --- MOTOR DO JOGO (ENGINE) ---</p><p>        let p = {</p><p>            name: "",</p><p>            class: "",</p><p>            lvl: 1,</p><p>            exp: 0,</p><p>            nextLvl: 100,</p><p>            hp: 100,</p><p>            maxHp: 100,</p><p>            gold: 50,</p><p>            str: 5, agi: 5, int: 5, vit: 5, luk: 5,</p><p>            weaponLvl: 0,</p><p>            materials: 0</p><p>        };</p><p><br></p><p>        const logs = document.getElementById('action-log');</p><p>        const chat = document.getElementById('chat-content');</p><p><br></p><p>        function logMsg(msg, color = "#fff") {</p><p>            logs.innerHTML += `&lt;div style="color: ${color}"&gt;&gt; ${msg}&lt;/div&gt;`;</p><p>            logs.scrollTop = logs.scrollHeight;</p><p>        }</p><p><br></p><p>        function chatMsg(user, msg) {</p><p>            chat.innerHTML += `&lt;div&gt;&lt;strong&gt;${user}:&lt;/strong&gt; ${msg}&lt;/div&gt;`;</p><p>            chat.scrollTop = chat.scrollHeight;</p><p>        }</p><p><br></p><p>        // --- SISTEMA DE LOGIN E SAVE ---</p><p>        function startGame() {</p><p>            const name = document.getElementById('username').value;</p><p>            if(!name) return alert("Escolha um nome!");</p><p>            </p><p>            p.name = name;</p><p>            p.class = document.getElementById('class-select').value;</p><p>            </p><p>            // Inicializar Atributos por Classe</p><p>            if(p.class === "Guerreiro") { p.str = 10; p.vit = 8; }</p><p>            if(p.class === "Mago") { p.int = 12; p.maxHp = 80; }</p><p>            if(p.class === "Arqueiro") { p.agi = 10; p.luk = 8; }</p><p>            </p><p>            // Carregar save se existir</p><p>            const saved = localStorage.getItem('eldoria_save_' + name);</p><p>            if(saved) {</p><p>                p = JSON.parse(saved);</p><p>                logMsg("Conta carregada com sucesso!", "cyan");</p><p>            }</p><p><br></p><p>            document.getElementById('login-screen').style.display = 'none';</p><p>            updateUI();</p><p>            logMsg(`Bem-vindo a Eldoria, ${p.name} o ${p.class}!`);</p><p>            </p><p>            // Simular Multiplayer</p><p>            setInterval(simulateMultiplayer, 5000);</p><p>        }</p><p><br></p><p>        function saveGame() {</p><p>            localStorage.setItem('eldoria_save_' + p.name, JSON.stringify(p));</p><p>            logMsg("Progresso salvo localmente.", "gold");</p><p>        }</p><p><br></p><p>        // --- SISTEMA DE COMBATE E EXPLORAÇÃO ---</p><p>        function explore() {</p><p>            if(p.hp &lt;= 0) return logMsg("Você está exausto! Descanse.", "red");</p><p>            </p><p>            const event = Math.random();</p><p>            if(event &gt; 0.4) {</p><p>                // Combate</p><p>                let monsterHp = 20 + (p.lvl * 5);</p><p>                let dmgDealt = p.str + (p.weaponLvl * 2) + Math.floor(Math.random() * p.luk);</p><p>                let dmgTaken = Math.max(2, 10 - Math.floor(p.vit/2));</p><p>                </p><p>                p.hp -= dmgTaken;</p><p>                p.exp += 40;</p><p>                p.gold += 15;</p><p>                p.materials += 1;</p><p>                </p><p>                logMsg(`Batalha: Você derrotou um Goblin! Causou ${dmgDealt} dmg e recebeu ${dmgTaken} dmg.`, "#ff4444");</p><p>                logMsg(`Ganhou 40 EXP, 15 Gold e 1 Material de Forja.`, "yellow");</p><p>            } else {</p><p>                logMsg("Você explorou e encontrou uma fonte sagrada. HP restaurado.", "lightgreen");</p><p>                p.hp = p.maxHp;</p><p>            }</p><p>            checkLevelUp();</p><p>            updateUI();</p><p>        }</p><p><br></p><p>        // --- FERREIRO (CRAFTING) ---</p><p>        function visitBlacksmith() {</p><p>            const costGold = (p.weaponLvl + 1) * 30;</p><p>            const costMat = (p.weaponLvl + 1) * 2;</p><p><br></p><p>            if(p.gold &gt;= costGold &amp;&amp; p.materials &gt;= costMat) {</p><p>                p.gold -= costGold;</p><p>                p.materials -= costMat;</p><p>                p.weaponLvl++;</p><p>                logMsg(`Ferreiro: "Sua arma agora é +${p.weaponLvl}!"`, "orange");</p><p>                p.str += 2;</p><p>            } else {</p><p>                logMsg(`Ferreiro: "Você precisa de ${costGold} gold e ${costMat} materiais para o upgrade."`, "#aaa");</p><p>            }</p><p>            updateUI();</p><p>        }</p><p><br></p><p>        // --- SISTEMA DE TRADE E MULTIPLAYER (SIMULADO) ---</p><p>        function openTrade() {</p><p>            logMsg("Procurando jogadores para trade...", "cyan");</p><p>            setTimeout(() =&gt; {</p><p>                const luck = Math.random();</p><p>                if(luck &gt; 0.5) {</p><p>                    p.gold += 50;</p><p>                    logMsg("Trade Realizado: Você vendeu itens raros por 50 Gold!", "gold");</p><p>                } else {</p><p>                    logMsg("Nenhum comprador interessado no momento.");</p><p>                }</p><p>                updateUI();</p><p>            }, 1000);</p><p>        }</p><p><br></p><p>        function simulateMultiplayer() {</p><p>            const users = ["Lord_Dragon", "X_Mago_X", "Beholder99", "Sir_Kael"];</p><p>            const msgs = ["Alguém quer ir Dungeon?", "Vendo Espada Longa +3!", "Onde fica o ferreiro?", "O Mago é muito apelão kkk"];</p><p>            const rUser = users[Math.floor(Math.random()*users.length)];</p><p>            const rMsg = msgs[Math.floor(Math.random()*msgs.length)];</p><p>            chatMsg(rUser, rMsg);</p><p>        }</p><p><br></p><p>        // --- LÓGICA DE PROGRESSÃO ---</p><p>        function checkLevelUp() {</p><p>            if(p.exp &gt;= p.nextLvl) {</p><p>                p.lvl++;</p><p>                p.exp = 0;</p><p>                p.nextLvl = Math.floor(p.nextLvl * 1.5);</p><p>                p.maxHp += 20;</p><p>                p.hp = p.maxHp;</p><p>                p.str += 2; p.agi += 1; p.int += 1;</p><p>                logMsg(`LEVEL UP! Você agora está no nível ${p.lvl}!`, "cyan");</p><p>            }</p><p>        }</p><p><br></p><p>        function rest() {</p><p>            p.hp = p.maxHp;</p><p>            logMsg("Você descansou na estalagem. HP Total!", "lightgreen");</p><p>            updateUI();</p><p>        }</p><p><br></p><p>        function updateUI() {</p><p>            document.getElementById('player-name-display').innerText = p.name;</p><p>            document.getElementById('class-display').innerText = p.class;</p><p>            document.getElementById('lvl-val').innerText = p.lvl;</p><p>            document.getElementById('gold-val').innerText = p.gold;</p><p>            document.getElementById('hp-val').innerText = `${p.hp}/${p.maxHp}`;</p><p>            document.getElementById('equip-val').innerText = `Espada de Aço +${p.weaponLvl}`;</p><p>            document.getElementById('attr-list').innerText = `STR: ${p.str} | AGI: ${p.agi} | INT: ${p.int} | MAT: ${p.materials}`;</p><p>            </p><p>            const hpP</p><p>erc = (p.hp / p.maxHp) * 100;</p><p>            document.getElementById('hp-fill').style.width = hpPerc + "%";</p><p>            </p><p>            const expPerc = (p.exp / p.nextLvl) * 100;</p><p>            document.getElementById('exp-fill').style.width = expPerc + "%";</p><p>        }</p><p>    &lt;/script&gt;</p><p>&lt;/body&gt;</p><p>&lt;/html&gt;</p></div>
+</body>
+</html>
